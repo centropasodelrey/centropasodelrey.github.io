@@ -51,6 +51,29 @@
             color: #333;
         }
 
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sync-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+            transition: all 0.3s ease;
+        }
+
+        .sync-indicator.connected { background: #4CAF50; }
+        .sync-indicator.syncing { background: #FF9800; animation: pulse 1s infinite; }
+        .sync-indicator.error { background: #f44336; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .buttons-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -81,10 +104,6 @@
             box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
-
         .btn .punto-rojo {
             position: absolute;
             top: -6px;
@@ -99,12 +118,7 @@
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        /* Modal para imágenes */
+        /* Modal y otros estilos igual que antes... */
         .modal {
             display: none;
             position: fixed;
@@ -128,15 +142,8 @@
             animation: slideIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
         .close {
             position: absolute;
@@ -193,7 +200,6 @@
             animation: pulse 2s infinite;
         }
 
-        /* Navegación */
         .nav-arrow {
             position: fixed;
             top: 50%;
@@ -214,14 +220,10 @@
             z-index: 10001;
         }
 
-        .nav-arrow:hover {
-            background: rgba(76, 175, 80, 0.9);
-        }
-
+        .nav-arrow:hover { background: rgba(76, 175, 80, 0.9); }
         .nav-prev { left: 15px; }
         .nav-next { right: 15px; }
 
-        /* Panel de administración */
         .admin-toggle {
             position: fixed;
             top: 15px;
@@ -237,9 +239,7 @@
             transition: all 0.2s ease;
         }
 
-        .admin-toggle:hover {
-            background: rgba(76, 175, 80, 0.9);
-        }
+        .admin-toggle:hover { background: rgba(76, 175, 80, 0.9); }
 
         .login-modal {
             display: none;
@@ -258,7 +258,7 @@
             margin: 15% auto;
             padding: 25px;
             width: 90%;
-            max-width: 350px;
+            max-width: 400px;
             text-align: center;
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -298,13 +298,8 @@
             transition: all 0.2s ease;
         }
 
-        .login-content button:hover {
-            transform: translateY(-1px);
-        }
-
-        .login-content button.cancel {
-            background: linear-gradient(135deg, #f44336, #d32f2f);
-        }
+        .login-content button:hover { transform: translateY(-1px); }
+        .login-content button.cancel { background: linear-gradient(135deg, #f44336, #d32f2f); }
 
         .admin-panel {
             position: fixed;
@@ -316,7 +311,7 @@
             border-radius: 12px;
             display: none;
             z-index: 20000;
-            max-width: 320px;
+            max-width: 350px;
             max-height: 75vh;
             overflow-y: auto;
         }
@@ -364,19 +359,10 @@
             min-width: 70px;
         }
 
-        .admin-controls button:hover {
-            transform: translateY(-1px);
-        }
+        .admin-controls button:hover { transform: translateY(-1px); }
+        .admin-controls button.danger { background: #f44336; }
+        .admin-controls button.secondary { background: #666; }
 
-        .admin-controls button.danger {
-            background: #f44336;
-        }
-
-        .admin-controls button.secondary {
-            background: #666;
-        }
-
-        /* Notificaciones */
         .notification {
             position: fixed;
             top: 20px;
@@ -397,6 +383,30 @@
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
 
+        .error-message {
+            color: #f44336;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(244, 67, 54, 0.1);
+            border-radius: 4px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .setup-info {
+            background: rgba(33, 150, 243, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .setup-info h4 {
+            margin: 0 0 8px 0;
+            color: #1976D2;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             body { padding: 10px; }
@@ -412,31 +422,6 @@
             .buttons-grid { grid-template-columns: repeat(3, 1fr); }
             .admin-grid { grid-template-columns: repeat(4, 1fr); }
         }
-
-        .error-message {
-            color: #f44336;
-            margin-top: 10px;
-            padding: 8px;
-            background: rgba(244, 67, 54, 0.1);
-            border-radius: 4px;
-            font-size: 14px;
-            display: none;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 2px solid #4CAF50;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body>
@@ -444,15 +429,15 @@
         <h1>Tarjetas Territorio</h1>
         
         <div class="info-bar">
-            <div>
-                Estado: <span id="statusText">Cargando...</span>
-                <span id="syncIndicator" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 8px; background: #ccc;"></span>
+            <div class="sync-status">
+                <div class="sync-indicator" id="syncIndicator"></div>
+                <span id="statusText">Iniciando...</span>
             </div>
             <div id="activeCount">Activos: 0/49</div>
         </div>
         
         <div class="buttons-grid" id="buttonsGrid">
-            <!-- Los botones se generan aquí -->
+            <!-- Botones generados dinámicamente -->
         </div>
     </div>
 
@@ -478,11 +463,23 @@
     <!-- Login -->
     <div id="loginModal" class="login-modal">
         <div class="login-content">
-            <h2>Acceso Administrador</h2>
-            <input type="text" id="username" placeholder="Usuario" value="admin">
+            <h2>Configuración Inicial</h2>
+            
+            <div class="setup-info">
+                <h4>Configuración única del administrador:</h4>
+                <p>1. Crea un token en GitHub → Settings → Developer settings → Personal access tokens</p>
+                <p>2. Dale permisos de "gist"</p>
+                <p>3. Pégalo abajo junto con tus credenciales</p>
+            </div>
+            
+            <input type="text" id="username" placeholder="Nombre de usuario" value="admin">
             <input type="password" id="password" placeholder="Contraseña" value="123456">
-            <div id="loginError" class="error-message">Usuario o contraseña incorrectos</div>
-            <button onclick="verificarLogin()">Entrar</button>
+            <input type="text" id="githubToken" placeholder="Token de GitHub (ghp_...)">
+            
+            <div id="loginError" class="error-message">Error en la configuración</div>
+            
+            <button onclick="configurarAdmin()">Configurar Administrador</button>
+            <button onclick="loginSinSync()">Entrar sin Sincronización</button>
             <button class="cancel" onclick="cerrarLogin()">Cancelar</button>
         </div>
     </div>
@@ -496,7 +493,7 @@
         <div class="admin-grid" id="adminGrid"></div>
         <div class="admin-controls">
             <button onclick="guardarEstado()">💾 Guardar</button>
-            <button onclick="forzarSincronizacion()">🔄 Sincronizar</button>
+            <button onclick="forzarSync()">🔄 Sync</button>
             <button onclick="copiarURL()">🔗 Copiar</button>
             <button class="danger" onclick="limpiarTodos()">🧹 Limpiar</button>
             <button class="secondary" onclick="cerrarAdmin()">❌ Cerrar</button>
@@ -504,211 +501,44 @@
     </div>
 
     <script>
-        // Estado de la aplicación con sincronización
+        // Estado de la aplicación
         let state = {
             imageUrls: [],
             puntosRojos: new Array(49).fill(false),
             imagenActual: 1,
             isAdmin: false,
-            syncEnabled: false,
-            lastSync: null,
+            syncConfig: {
+                token: localStorage.getItem('github_token'),
+                gistId: localStorage.getItem('gist_id'),
+                enabled: false
+            },
             syncInterval: null
         };
 
-        // Configuración de sincronización usando JSONBin (servicio gratuito)
-        const SYNC_CONFIG = {
-            apiKey: '$2a$10$8I2UHkkxhYOP.ZQMKqX9Tu5JjP4rGqvfW7FDlLdayLu1h8pKKoHie', // API key pública solo para este proyecto
-            binId: localStorage.getItem('sync_bin_id') || null,
-            apiUrl: 'https://api.jsonbin.io/v3'
-        };
-
         // === INICIALIZACIÓN ===
-        function init() {
-            console.log('Inicializando Tarjetas Territorio con sincronización...');
+        async function init() {
+            console.log('Iniciando Tarjetas Territorio...');
             
             generarImagenesEjemplo();
-            cargarEstado();
+            await cargarEstado();
             crearBotones();
             actualizarPuntos();
             configurarEventListeners();
             
-            // Iniciar sincronización automática
-            iniciarSincronizacion();
-            
-            console.log('Aplicación lista con sincronización activa');
-        }
-
-        // === SISTEMA DE SINCRONIZACIÓN ===
-        async function iniciarSincronizacion() {
-            try {
-                actualizarIndicadorSync('connecting', 'Conectando...');
-                
-                // Primero intentar cargar datos de la nube
-                await cargarDesdeLaNube();
-                
-                // Configurar sincronización automática cada 30 segundos
-                if (state.syncInterval) {
-                    clearInterval(state.syncInterval);
-                }
-                
-                state.syncInterval = setInterval(async () => {
-                    if (!state.isAdmin) {
-                        // Los usuarios normales solo cargan datos
-                        await cargarDesdeLaNube();
-                    } else {
-                        // Los administradores sincronizan (subir y bajar)
-                        await sincronizarConLaNube();
-                    }
-                }, 30000);
-                
-                state.syncEnabled = true;
-                actualizarIndicadorSync('connected', 'Conectado');
-                
-            } catch (error) {
-                console.error('Error iniciando sincronización:', error);
-                actualizarIndicadorSync('error', 'Sin conexión');
-            }
-        }
-
-        async function cargarDesdeLaNube() {
-            if (!SYNC_CONFIG.binId) {
-                // Si no hay bin configurado, intentar crear uno o usar datos locales
-                console.log('Sin bin configurado, usando datos locales');
-                return false;
+            // Iniciar sincronización si está configurada
+            if (state.syncConfig.token && state.syncConfig.gistId) {
+                await iniciarSincronizacion();
+            } else {
+                actualizarIndicadorSync('offline', 'Solo local');
             }
             
-            try {
-                actualizarIndicadorSync('syncing', 'Cargando...');
-                
-                const response = await fetch(`${SYNC_CONFIG.apiUrl}/b/${SYNC_CONFIG.binId}/latest`, {
-                    headers: {
-                        'X-Master-Key': SYNC_CONFIG.apiKey
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data.record && data.record.puntosRojos && Array.isArray(data.record.puntosRojos)) {
-                        const nuevosdatos = data.record.puntosRojos;
-                        const datosActuales = JSON.stringify(state.puntosRojos);
-                        const datosNuevos = JSON.stringify(nuevosdatos);
-                        
-                        if (datosActuales !== datosNuevos) {
-                            state.puntosRojos = nuevosdatos;
-                            actualizarPuntos();
-                            
-                            // Actualizar panel admin si está visible
-                            if (state.isAdmin && document.getElementById('adminPanel').style.display === 'block') {
-                                crearGridAdmin();
-                            }
-                            
-                            console.log('Datos actualizados desde la nube');
-                            if (!state.isAdmin) {
-                                mostrarNotificacion('Datos actualizados automáticamente', 'info');
-                            }
-                        }
-                        
-                        state.lastSync = new Date();
-                        actualizarIndicadorSync('connected', 'Actualizado');
-                        return true;
-                    }
-                }
-                
-                actualizarIndicadorSync('error', 'Error cargando');
-                return false;
-                
-            } catch (error) {
-                console.error('Error cargando desde la nube:', error);
-                actualizarIndicadorSync('error', 'Sin conexión');
-                return false;
-            }
-        }
-
-        async function subirALaNube() {
-            try {
-                actualizarIndicadorSync('syncing', 'Guardando...');
-                
-                const data = {
-                    puntosRojos: state.puntosRojos,
-                    lastUpdate: new Date().toISOString(),
-                    version: '1.0',
-                    admin: 'centropasodelrey'
-                };
-                
-                let url, method;
-                
-                if (!SYNC_CONFIG.binId) {
-                    // Crear nuevo bin
-                    url = `${SYNC_CONFIG.apiUrl}/b`;
-                    method = 'POST';
-                } else {
-                    // Actualizar bin existente
-                    url = `${SYNC_CONFIG.apiUrl}/b/${SYNC_CONFIG.binId}`;
-                    method = 'PUT';
-                }
-                
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': SYNC_CONFIG.apiKey
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                if (response.ok) {
-                    const result = await response.json();
-                    
-                    if (!SYNC_CONFIG.binId && result.metadata && result.metadata.id) {
-                        SYNC_CONFIG.binId = result.metadata.id;
-                        localStorage.setItem('sync_bin_id', SYNC_CONFIG.binId);
-                        console.log('Nuevo bin creado:', SYNC_CONFIG.binId);
-                    }
-                    
-                    state.lastSync = new Date();
-                    actualizarIndicadorSync('connected', 'Guardado');
-                    return true;
-                } else {
-                    throw new Error(`Error ${response.status}`);
-                }
-                
-            } catch (error) {
-                console.error('Error subiendo a la nube:', error);
-                actualizarIndicadorSync('error', 'Error guardando');
-                return false;
-            }
-        }
-
-        async function sincronizarConLaNube() {
-            // Primero cargar cambios de otros
-            await cargarDesdeLaNube();
-            
-            // Luego subir nuestros cambios
-            await subirALaNube();
-        }
-
-        function actualizarIndicadorSync(estado, mensaje) {
-            const indicator = document.getElementById('syncIndicator');
-            const statusText = document.getElementById('statusText');
-            
-            if (indicator && statusText) {
-                const colores = {
-                    connected: '#4CAF50',
-                    syncing: '#FF9800',
-                    error: '#f44336',
-                    connecting: '#2196F3'
-                };
-                
-                indicator.style.background = colores[estado] || '#ccc';
-                statusText.textContent = mensaje;
-            }
+            console.log('Aplicación lista');
         }
 
         function generarImagenesEjemplo() {
-            // URLs de ejemplo - reemplaza con tus imágenes
+            // URLs de ejemplo - reemplaza con tus imágenes reales
             state.imageUrls = Array(49).fill(0).map((_, i) => 
-                `https://picsum.photos/800/600?random=${i + 1}&sig=${Date.now()}`
+                `https://picsum.photos/800/600?random=${i + 1}`
             );
         }
 
@@ -725,27 +555,194 @@
             }
         }
 
-        // === GESTIÓN DE ESTADO ===
-        function cargarEstado() {
+        // === SINCRONIZACIÓN CON GITHUB GIST ===
+        async function iniciarSincronizacion() {
+            if (!state.syncConfig.token) {
+                actualizarIndicadorSync('offline', 'Sin configurar');
+                return;
+            }
+
             try {
-                // 1. Desde URL
+                actualizarIndicadorSync('syncing', 'Conectando...');
+                
+                // Cargar datos iniciales
+                await cargarDesdeGist();
+                
+                // Configurar sincronización automática cada 30 segundos
+                if (state.syncInterval) clearInterval(state.syncInterval);
+                
+                state.syncInterval = setInterval(async () => {
+                    if (!state.isAdmin) {
+                        await cargarDesdeGist(); // Solo cargar para usuarios
+                    }
+                }, 30000);
+                
+                state.syncConfig.enabled = true;
+                actualizarIndicadorSync('connected', 'Conectado');
+                console.log('Sincronización iniciada');
+                
+            } catch (error) {
+                console.error('Error iniciando sincronización:', error);
+                actualizarIndicadorSync('error', 'Error conexión');
+            }
+        }
+
+        async function cargarDesdeGist() {
+            if (!state.syncConfig.gistId || !state.syncConfig.token) {
+                return false;
+            }
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${state.syncConfig.gistId}`, {
+                    headers: {
+                        'Authorization': `token ${state.syncConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.ok) {
+                    const gist = await response.json();
+                    const content = gist.files['territorios-data.json'];
+                    
+                    if (content) {
+                        const data = JSON.parse(content.content);
+                        
+                        if (data.puntosRojos && Array.isArray(data.puntosRojos)) {
+                            const datosActuales = JSON.stringify(state.puntosRojos);
+                            const datosNuevos = JSON.stringify(data.puntosRojos);
+                            
+                            if (datosActuales !== datosNuevos) {
+                                state.puntosRojos = data.puntosRojos;
+                                actualizarPuntos();
+                                
+                                if (state.isAdmin && document.getElementById('adminPanel').style.display === 'block') {
+                                    crearGridAdmin();
+                                }
+                                
+                                if (!state.isAdmin) {
+                                    mostrarNotificacion('Datos actualizados', 'info');
+                                }
+                                
+                                console.log('Datos sincronizados desde la nube');
+                            }
+                            
+                            return true;
+                        }
+                    }
+                } else if (response.status === 404) {
+                    console.log('Gist no encontrado, se creará uno nuevo');
+                    state.syncConfig.gistId = null;
+                    localStorage.removeItem('gist_id');
+                }
+                
+                return false;
+                
+            } catch (error) {
+                console.error('Error cargando desde gist:', error);
+                actualizarIndicadorSync('error', 'Error cargando');
+                return false;
+            }
+        }
+
+        async function subirAGist() {
+            if (!state.syncConfig.token) return false;
+
+            try {
+                actualizarIndicadorSync('syncing', 'Guardando...');
+                
+                const data = {
+                    puntosRojos: state.puntosRojos,
+                    lastUpdate: new Date().toISOString(),
+                    version: '1.0'
+                };
+
+                let url = 'https://api.github.com/gists';
+                let method = 'POST';
+                let body = {
+                    description: 'Tarjetas Territorio - Estado sincronizado',
+                    public: false,
+                    files: {
+                        'territorios-data.json': {
+                            content: JSON.stringify(data, null, 2)
+                        }
+                    }
+                };
+
+                if (state.syncConfig.gistId) {
+                    url = `https://api.github.com/gists/${state.syncConfig.gistId}`;
+                    method = 'PATCH';
+                    body = {
+                        files: {
+                            'territorios-data.json': {
+                                content: JSON.stringify(data, null, 2)
+                            }
+                        }
+                    };
+                }
+
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `token ${state.syncConfig.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    if (!state.syncConfig.gistId) {
+                        state.syncConfig.gistId = result.id;
+                        localStorage.setItem('gist_id', result.id);
+                        console.log('Nuevo gist creado:', result.id);
+                    }
+                    
+                    actualizarIndicadorSync('connected', 'Guardado');
+                    return true;
+                } else {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+            } catch (error) {
+                console.error('Error subiendo a gist:', error);
+                actualizarIndicadorSync('error', 'Error guardando');
+                return false;
+            }
+        }
+
+        function actualizarIndicadorSync(estado, mensaje) {
+            const indicator = document.getElementById('syncIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            if (indicator && statusText) {
+                indicator.className = `sync-indicator ${estado}`;
+                statusText.textContent = mensaje;
+            }
+        }
+
+        // === GESTIÓN DE ESTADO ===
+        async function cargarEstado() {
+            try {
+                // 1. URL tiene prioridad
                 if (cargarDesdeURL()) {
                     console.log('Estado cargado desde URL');
                     return;
                 }
 
-                // 2. Desde localStorage
+                // 2. Local storage
                 const saved = localStorage.getItem('puntosRojos_territorios');
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (Array.isArray(parsed) && parsed.length === 49) {
                         state.puntosRojos = parsed;
-                        console.log('Estado cargado desde almacenamiento local');
+                        console.log('Estado cargado localmente');
                         return;
                     }
                 }
 
-                console.log('Iniciando con estado limpio');
+                console.log('Estado inicial limpio');
             } catch (error) {
                 console.error('Error cargando estado:', error);
             }
@@ -770,41 +767,7 @@
             return false;
         }
 
-        function guardarEstado() {
-            try {
-                // Guardar en localStorage
-                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
-                
-                // Actualizar URL
-                actualizarURL();
-                
-                mostrarNotificacion('Estado guardado correctamente', 'success');
-                console.log('Estado guardado');
-            } catch (error) {
-                console.error('Error guardando:', error);
-                mostrarNotificacion('Error guardando estado', 'error');
-            }
-        }
-
-        function actualizarURL() {
-            try {
-                const encoded = codificarPuntos(state.puntosRojos);
-                const url = new URL(window.location);
-                
-                if (encoded && encoded !== codificarPuntos(new Array(49).fill(false))) {
-                    url.searchParams.set('p', encoded);
-                } else {
-                    url.searchParams.delete('p');
-                }
-                
-                window.history.replaceState({}, '', url);
-            } catch (error) {
-                console.warn('Error actualizando URL:', error);
-            }
-        }
-
         function codificarPuntos(array) {
-            // Convierte array de boolean a string binario compacto
             const binary = array.map(p => p ? '1' : '0').join('');
             let hex = '';
             
@@ -834,6 +797,23 @@
             }
         }
 
+        function actualizarURL() {
+            try {
+                const encoded = codificarPuntos(state.puntosRojos);
+                const url = new URL(window.location);
+                
+                if (encoded && encoded !== codificarPuntos(new Array(49).fill(false))) {
+                    url.searchParams.set('p', encoded);
+                } else {
+                    url.searchParams.delete('p');
+                }
+                
+                window.history.replaceState({}, '', url);
+            } catch (error) {
+                console.warn('Error actualizando URL:', error);
+            }
+        }
+
         function actualizarPuntos() {
             state.puntosRojos.forEach((activo, index) => {
                 const punto = document.getElementById(`punto-${index + 1}`);
@@ -842,11 +822,214 @@
                 }
             });
             
-            // Actualizar contador
             const activos = state.puntosRojos.filter(Boolean).length;
             const counter = document.getElementById('activeCount');
             if (counter) {
                 counter.textContent = `Activos: ${activos}/49`;
+            }
+        }
+
+        // === ADMINISTRACIÓN ===
+        function mostrarLogin() {
+            const modal = document.getElementById('loginModal');
+            const tokenInput = document.getElementById('githubToken');
+            
+            if (modal) {
+                modal.style.display = 'block';
+                
+                // Si ya hay token, ocultarlo por seguridad
+                if (state.syncConfig.token) {
+                    tokenInput.style.display = 'none';
+                    tokenInput.previousElementSibling.textContent = 'Token ya configurado';
+                }
+            }
+        }
+
+        function cerrarLogin() {
+            const modal = document.getElementById('loginModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function configurarAdmin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const token = document.getElementById('githubToken').value;
+            const error = document.getElementById('loginError');
+            
+            if (username === 'admin' && password === '123456') {
+                if (token && token.startsWith('ghp_')) {
+                    // Configurar sincronización
+                    state.syncConfig.token = token;
+                    localStorage.setItem('github_token', token);
+                    
+                    state.isAdmin = true;
+                    cerrarLogin();
+                    
+                    // Iniciar sincronización
+                    await iniciarSincronizacion();
+                    
+                    mostrarPanelAdmin();
+                    mostrarNotificacion('Administrador configurado con sincronización', 'success');
+                    
+                } else {
+                    // Login sin token
+                    loginSinSync();
+                }
+            } else {
+                if (error) {
+                    error.style.display = 'block';
+                    error.textContent = 'Usuario o contraseña incorrectos';
+                    setTimeout(() => error.style.display = 'none', 3000);
+                }
+            }
+        }
+
+        function loginSinSync() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const error = document.getElementById('loginError');
+            
+            if (username === 'admin' && password === '123456') {
+                state.isAdmin = true;
+                cerrarLogin();
+                mostrarPanelAdmin();
+                actualizarIndicadorSync('offline', 'Solo local');
+                mostrarNotificacion('Administrador - modo local', 'info');
+            } else {
+                if (error) {
+                    error.style.display = 'block';
+                    error.textContent = 'Usuario o contraseña incorrectos';
+                    setTimeout(() => error.style.display = 'none', 3000);
+                }
+            }
+        }
+
+        function mostrarPanelAdmin() {
+            const panel = document.getElementById('adminPanel');
+            if (panel) {
+                panel.style.display = 'block';
+                crearGridAdmin();
+            }
+        }
+
+        function cerrarAdmin() {
+            const panel = document.getElementById('adminPanel');
+            if (panel) panel.style.display = 'none';
+            state.isAdmin = false;
+        }
+
+        function crearGridAdmin() {
+            const grid = document.getElementById('adminGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= 49; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'admin-btn';
+                btn.textContent = i;
+                btn.title = `Territorio ${i}`;
+                
+                if (state.puntosRojos[i - 1]) {
+                    btn.classList.add('active');
+                }
+                
+                btn.onclick = () => togglePunto(i);
+                grid.appendChild(btn);
+            }
+        }
+
+        function togglePunto(numero) {
+            if (!state.isAdmin || numero < 1 || numero > 49) return;
+            
+            const index = numero - 1;
+            state.puntosRojos[index] = !state.puntosRojos[index];
+            
+            // Actualizar UI
+            const punto = document.getElementById(`punto-${numero}`);
+            if (punto) {
+                punto.style.display = state.puntosRojos[index] ? 'block' : 'none';
+            }
+            
+            if (state.imagenActual === numero) {
+                const puntoModal = document.getElementById('puntoModal');
+                if (puntoModal) {
+                    puntoModal.style.display = state.puntosRojos[index] ? 'block' : 'none';
+                }
+            }
+            
+            const adminBtns = document.querySelectorAll('.admin-btn');
+            const adminBtn = adminBtns[index];
+            if (adminBtn) {
+                adminBtn.classList.toggle('active', state.puntosRojos[index]);
+            }
+            
+            actualizarPuntos();
+            
+            // Auto-guardar
+            setTimeout(() => {
+                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
+                actualizarURL();
+                
+                if (state.syncConfig.enabled && state.isAdmin) {
+                    subirAGist();
+                }
+            }, 100);
+        }
+
+        function limpiarTodos() {
+            if (!state.isAdmin) return;
+            
+            if (confirm('¿Seguro que quieres quitar todos los puntos rojos?')) {
+                state.puntosRojos.fill(false);
+                actualizarPuntos();
+                crearGridAdmin();
+                
+                const puntoModal = document.getElementById('puntoModal');
+                if (puntoModal) puntoModal.style.display = 'none';
+                
+                guardarEstado();
+            }
+        }
+
+        function guardarEstado() {
+            try {
+                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
+                actualizarURL();
+                
+                if (state.syncConfig.enabled && state.isAdmin) {
+                    subirAGist().then(success => {
+                        if (success) {
+                            mostrarNotificacion('Estado guardado y sincronizado', 'success');
+                        } else {
+                            mostrarNotificacion('Guardado localmente (error sync)', 'warning');
+                        }
+                    });
+                } else {
+                    mostrarNotificacion('Estado guardado localmente', 'success');
+                }
+            } catch (error) {
+                console.error('Error guardando:', error);
+                mostrarNotificacion('Error guardando estado', 'error');
+            }
+        }
+
+        async function forzarSync() {
+            if (!state.syncConfig.enabled) {
+                mostrarNotificacion('Sincronización no configurada', 'warning');
+                return;
+            }
+            
+            try {
+                if (state.isAdmin) {
+                    await subirAGist();
+                    await cargarDesdeGist();
+                } else {
+                    await cargarDesdeGist();
+                }
+                mostrarNotificacion('Sincronización completada', 'success');
+            } catch (error) {
+                mostrarNotificacion('Error en sincronización', 'error');
             }
         }
 
@@ -928,148 +1111,7 @@
             document.body.style.overflow = '';
         }
 
-        // === ADMINISTRACIÓN ===
-        function mostrarLogin() {
-            const modal = document.getElementById('loginModal');
-            if (modal) {
-                modal.style.display = 'block';
-            }
-        }
-
-        function cerrarLogin() {
-            const modal = document.getElementById('loginModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        function verificarLogin() {
-            const username = document.getElementById('username')?.value;
-            const password = document.getElementById('password')?.value;
-            const error = document.getElementById('loginError');
-            
-            if (username === 'admin' && password === '123456') {
-                state.isAdmin = true;
-                cerrarLogin();
-                mostrarPanelAdmin();
-                mostrarNotificacion('Sesión iniciada como administrador', 'success');
-            } else {
-                if (error) {
-                    error.style.display = 'block';
-                    setTimeout(() => {
-                        error.style.display = 'none';
-                    }, 3000);
-                }
-            }
-        }
-
-        function mostrarPanelAdmin() {
-            const panel = document.getElementById('adminPanel');
-            if (panel) {
-                panel.style.display = 'block';
-                crearGridAdmin();
-            }
-        }
-
-        function cerrarAdmin() {
-            const panel = document.getElementById('adminPanel');
-            if (panel) {
-                panel.style.display = 'none';
-            }
-            state.isAdmin = false;
-        }
-
-        function crearGridAdmin() {
-            const grid = document.getElementById('adminGrid');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            
-            for (let i = 1; i <= 49; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'admin-btn';
-                btn.textContent = i;
-                btn.title = `Territorio ${i}`;
-                
-                if (state.puntosRojos[i - 1]) {
-                    btn.classList.add('active');
-                }
-                
-                btn.onclick = () => togglePunto(i);
-                grid.appendChild(btn);
-            }
-        }
-
-        function togglePunto(numero) {
-            if (!state.isAdmin || numero < 1 || numero > 49) return;
-            
-            const index = numero - 1;
-            state.puntosRojos[index] = !state.puntosRojos[index];
-            
-            // Actualizar punto en botón principal
-            const punto = document.getElementById(`punto-${numero}`);
-            if (punto) {
-                punto.style.display = state.puntosRojos[index] ? 'block' : 'none';
-            }
-            
-            // Actualizar punto en modal si está visible
-            if (state.imagenActual === numero) {
-                const puntoModal = document.getElementById('puntoModal');
-                if (puntoModal) {
-                    puntoModal.style.display = state.puntosRojos[index] ? 'block' : 'none';
-                }
-            }
-            
-            // Actualizar botón admin
-            const adminBtns = document.querySelectorAll('.admin-btn');
-            const adminBtn = adminBtns[index];
-            if (adminBtn) {
-                adminBtn.classList.toggle('active', state.puntosRojos[index]);
-            }
-            
-            actualizarPuntos();
-            
-            // Auto-guardar y sincronizar
-            setTimeout(() => {
-                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
-                actualizarURL();
-                
-                // Subir a la nube inmediatamente
-                if (state.isAdmin) {
-                    subirALaNube();
-                }
-            }, 100);
-        }
-
-        function limpiarTodos() {
-            if (!state.isAdmin) return;
-            
-            if (confirm('¿Seguro que quieres quitar todos los puntos rojos?')) {
-                state.puntosRojos.fill(false);
-                actualizarPuntos();
-                crearGridAdmin();
-                
-                const puntoModal = document.getElementById('puntoModal');
-                if (puntoModal) puntoModal.style.display = 'none';
-                
-                // Guardar y sincronizar
-                guardarEstado();
-            }
-        }
-
-        // Función para forzar sincronización manual
-        function forzarSincronizacion() {
-            if (state.isAdmin) {
-                sincronizarConLaNube().then(() => {
-                    mostrarNotificacion('Sincronización completada', 'success');
-                });
-            } else {
-                cargarDesdeLaNube().then(() => {
-                    mostrarNotificacion('Datos actualizados', 'info');
-                });
-            }
-        }
-
+        // === UTILIDADES ===
         function copiarURL() {
             const url = window.location.href;
             
@@ -1112,7 +1154,6 @@
             }, 100);
         }
 
-        // === UTILIDADES ===
         function mostrarNotificacion(mensaje, tipo = 'info') {
             const colores = {
                 success: '#4CAF50',
@@ -1135,8 +1176,8 @@
             }, 3000);
         }
 
+        // === EVENT LISTENERS ===
         function configurarEventListeners() {
-            // Navegación con teclado
             document.addEventListener('keydown', function(event) {
                 const modal = document.getElementById('imageModal');
                 const loginModal = document.getElementById('loginModal');
@@ -1160,7 +1201,7 @@
                 if (loginModal && loginModal.style.display === 'block') {
                     switch (event.key) {
                         case 'Enter':
-                            verificarLogin();
+                            configurarAdmin();
                             break;
                         case 'Escape':
                             cerrarLogin();
@@ -1169,20 +1210,15 @@
                 }
             });
 
-            // Cerrar modales haciendo clic fuera
             document.getElementById('loginModal')?.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    cerrarLogin();
-                }
+                if (e.target === this) cerrarLogin();
             });
 
             document.getElementById('imageModal')?.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    cerrarModal();
-                }
+                if (e.target === this) cerrarModal();
             });
 
-            // Gestos táctiles para navegación
+            // Gestos táctiles
             let startX = 0;
             const imageModal = document.getElementById('imageModal');
             
@@ -1197,32 +1233,16 @@
                     
                     if (Math.abs(diff) > 50) {
                         if (diff > 0) {
-                            imagenSiguiente(); // Swipe left = siguiente
+                            imagenSiguiente();
                         } else {
-                            imagenAnterior(); // Swipe right = anterior
+                            imagenAnterior();
                         }
                     }
                 }, { passive: true });
             }
         }
 
-        // === MANEJO DE ERRORES ===
-        window.addEventListener('error', function(e) {
-            console.error('Error:', e.error);
-            mostrarNotificacion('Se produjo un error en la aplicación', 'error');
-        });
-
-        // === INICIALIZACIÓN ===
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                init();
-            } catch (error) {
-                console.error('Error inicializando:', error);
-                mostrarNotificacion('Error de inicialización', 'error');
-            }
-        });
-
-        // === API PARA DEBUGGING Y CONFIGURACIÓN ===
+        // === API DE DEBUG ===
         window.territoriosApp = {
             getState: () => ({ ...state }),
             resetear: () => {
@@ -1230,72 +1250,58 @@
                 actualizarPuntos();
                 localStorage.removeItem('puntosRojos_territorios');
                 actualizarURL();
-                if (state.isAdmin) subirALaNube();
+                if (state.syncConfig.enabled && state.isAdmin) subirAGist();
                 mostrarNotificacion('Estado reiniciado', 'info');
-            },
-            togglePunto: (numero) => {
-                if (numero >= 1 && numero <= 49) {
-                    const wasAdmin = state.isAdmin;
-                    state.isAdmin = true;
-                    togglePunto(numero);
-                    state.isAdmin = wasAdmin;
-                }
-            },
-            setImageUrls: (urls) => {
-                if (Array.isArray(urls) && urls.length === 49) {
-                    state.imageUrls = urls;
-                    console.log('URLs de imágenes actualizadas');
-                }
             },
             exportState: () => {
                 const exportData = {
                     puntosRojos: state.puntosRojos,
                     url: window.location.href,
-                    binId: SYNC_CONFIG.binId,
-                    lastSync: state.lastSync,
+                    syncEnabled: state.syncConfig.enabled,
                     timestamp: new Date().toISOString()
                 };
                 console.log('Estado exportado:', exportData);
                 return exportData;
             },
-            importState: (data) => {
-                if (data && Array.isArray(data.puntosRojos) && data.puntosRojos.length === 49) {
-                    state.puntosRojos = data.puntosRojos;
-                    actualizarPuntos();
-                    actualizarURL();
-                    if (state.isAdmin) subirALaNube();
-                    mostrarNotificacion('Estado importado correctamente', 'success');
+            configurarToken: (token) => {
+                if (token && token.startsWith('ghp_')) {
+                    state.syncConfig.token = token;
+                    localStorage.setItem('github_token', token);
+                    console.log('Token configurado. Reinicia la página para activar sincronización.');
                     return true;
                 }
                 return false;
             },
-            forzarSincronizacion: () => forzarSincronizacion(),
-            verInfoSincronizacion: () => {
-                const info = {
-                    syncEnabled: state.syncEnabled,
-                    binId: SYNC_CONFIG.binId,
-                    lastSync: state.lastSync,
-                    isAdmin: state.isAdmin,
-                    apiUrl: SYNC_CONFIG.apiUrl
-                };
-                console.log('Información de sincronización:', info);
-                return info;
-            },
-            resetearSincronizacion: () => {
-                localStorage.removeItem('sync_bin_id');
-                SYNC_CONFIG.binId = null;
-                console.log('Sincronización reseteada. Se creará un nuevo bin en la próxima subida.');
-                mostrarNotificacion('Sincronización reseteada', 'info');
+            resetearSync: () => {
+                localStorage.removeItem('github_token');
+                localStorage.removeItem('gist_id');
+                state.syncConfig = { token: null, gistId: null, enabled: false };
+                if (state.syncInterval) clearInterval(state.syncInterval);
+                actualizarIndicadorSync('offline', 'Sync reseteada');
+                console.log('Sincronización reseteada');
             }
         };
 
-        console.log('🎯 Tarjetas Territorio - Versión con Sincronización');
-        console.log('🔄 Sincronización automática cada 30 segundos');
-        console.log('📱 Optimizado para dispositivos móviles');
+        // === MANEJO DE ERRORES ===
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.error);
+            mostrarNotificacion('Error en la aplicación', 'error');
+        });
+
+        // === INICIALIZAR ===
+        document.addEventListener('DOMContentLoaded', function() {
+            init().catch(error => {
+                console.error('Error inicializando:', error);
+                mostrarNotificacion('Error de inicialización', 'error');
+                actualizarIndicadorSync('error', 'Error inicio');
+            });
+        });
+
+        console.log('🎯 Tarjetas Territorio - Sincronización GitHub');
+        console.log('🔄 Sincronización automática con GitHub Gist');
+        console.log('📱 Optimizado para móviles');
         console.log('🔧 Debug: window.territoriosApp');
-        console.log('📋 Admin: admin / 123456');
-        console.log('💡 Los administradores sincronizan cambios automáticamente');
-        console.log('👥 Los usuarios reciben actualizaciones automáticas');
+        console.log('⚙️ Configuración inicial necesaria para sincronización');
     </script>
 </body>
 </html>
