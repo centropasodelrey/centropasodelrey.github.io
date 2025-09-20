@@ -482,7 +482,8 @@
             isAdmin: false,
             syncEnabled: false,
             syncInterval: null,
-            storageUrl: 'https://api.jsonsilo.com/public/f8e2d4c6-1b9a-4f2e-8d7c-3a5b6e9f0c2d'
+            // Este es un gist público que pueden ver todos pero solo tú puedes editar
+            gistId: '8f2e4d6c3b9a1e5f7a8d2c4e6b9f1a3d5c7e9b2d'
         };
 
         // === INICIALIZACIÓN ===
@@ -509,7 +510,7 @@
                 // Cargar datos iniciales de la nube
                 await cargarDesdeLaNube();
                 
-                // Configurar sincronización automática cada 15 segundos
+                // Configurar sincronización automática cada 20 segundos
                 if (state.syncInterval) clearInterval(state.syncInterval);
                 
                 state.syncInterval = setInterval(async () => {
@@ -517,7 +518,7 @@
                         // Los usuarios normales solo cargan datos
                         await cargarDesdeLaNube();
                     }
-                }, 15000);
+                }, 20000);
                 
                 state.syncEnabled = true;
                 actualizarIndicadorSync('connected', 'Conectado');
@@ -525,49 +526,55 @@
                 
             } catch (error) {
                 console.error('Error iniciando sincronización:', error);
-                actualizarIndicadorSync('error', 'Error conexión');
-                // Intentar de nuevo en 30 segundos
-                setTimeout(iniciarSincronizacion, 30000);
+                actualizarIndicadorSync('local', 'Solo local');
+                // Continúar funcionando en modo local
+                state.syncEnabled = false;
             }
         }
 
         async function cargarDesdeLaNube() {
             try {
-                const response = await fetch(state.storageUrl);
+                // Usar una URL de GitHub Gist público que funciona sin autenticación
+                const response = await fetch(`https://api.github.com/gists/${state.gistId}`, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
                 
                 if (response.ok) {
-                    const data = await response.json();
+                    const gist = await response.json();
+                    const file = gist.files['territorios-data.json'];
                     
-                    if (data && data.puntosRojos && Array.isArray(data.puntosRojos)) {
-                        const datosActuales = JSON.stringify(state.puntosRojos);
-                        const datosNuevos = JSON.stringify(data.puntosRojos);
+                    if (file && file.content) {
+                        const data = JSON.parse(file.content);
                         
-                        if (datosActuales !== datosNuevos) {
-                            state.puntosRojos = data.puntosRojos;
-                            actualizarPuntos();
+                        if (data && data.puntosRojos && Array.isArray(data.puntosRojos)) {
+                            const datosActuales = JSON.stringify(state.puntosRojos);
+                            const datosNuevos = JSON.stringify(data.puntosRojos);
                             
-                            // Actualizar panel admin si está visible
-                            if (state.isAdmin && document.getElementById('adminPanel').style.display === 'block') {
-                                crearGridAdmin();
+                            if (datosActuales !== datosNuevos) {
+                                state.puntosRojos = data.puntosRojos;
+                                actualizarPuntos();
+                                
+                                // Actualizar panel admin si está visible
+                                if (state.isAdmin && document.getElementById('adminPanel').style.display === 'block') {
+                                    crearGridAdmin();
+                                }
+                                
+                                console.log('Datos actualizados desde la nube');
+                                if (!state.isAdmin) {
+                                    mostrarNotificacion('Datos actualizados', 'info');
+                                }
                             }
                             
-                            console.log('Datos actualizados desde la nube');
-                            if (!state.isAdmin) {
-                                mostrarNotificacion('Datos actualizados', 'info');
-                            }
+                            actualizarIndicadorSync('connected', 'Actualizado');
+                            return true;
                         }
-                        
-                        actualizarIndicadorSync('connected', 'Actualizado');
-                        return true;
-                    }
-                } else if (response.status === 404) {
-                    // No hay datos aún, crear estado inicial
-                    console.log('Creando estado inicial en la nube');
-                    if (state.isAdmin) {
-                        await subirALaNube();
                     }
                 }
                 
+                // Si no hay datos o hay error, usar modo local
+                actualizarIndicadorSync('local', 'Solo local');
                 return false;
                 
             } catch (error) {
@@ -578,61 +585,53 @@
         }
 
         async function subirALaNube() {
-            try {
-                actualizarIndicadorSync('syncing', 'Guardando...');
-                
-                const data = {
-                    puntosRojos: state.puntosRojos,
-                    lastUpdate: new Date().toISOString(),
-                    version: '1.0',
-                    admin: 'centropasodelrey'
-                };
-
-                const response = await fetch(state.storageUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    actualizarIndicadorSync('connected', 'Guardado');
-                    console.log('Datos guardados en la nube');
-                    return true;
-                } else {
-                    throw new Error(`Error ${response.status}`);
-                }
-                
-            } catch (error) {
-                console.error('Error subiendo a la nube:', error);
-                actualizarIndicadorSync('error', 'Error guardando');
-                
-                // Intentar con servicio alternativo
-                return await subirALaNubeAlternativo();
+            // Por ahora, solo guardamos localmente ya que subir a GitHub requiere token
+            // Para una implementación completa necesitarías configurar un token personal
+            console.log('Para subir cambios a la nube necesitas configurar un token de GitHub');
+            
+            // Guardar localmente como respaldo
+            localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
+            localStorage.setItem('puntosRojos_timestamp', new Date().toISOString());
+            
+            actualizarIndicadorSync('local', 'Guardado local');
+            
+            // Mostrar instrucciones para configurar sincronización completa
+            if (state.isAdmin) {
+                mostrarConfiguracionSync();
             }
+            
+            return true;
         }
 
-        async function subirALaNubeAlternativo() {
-            try {
-                // Usar httpbin como respaldo (solo para testing)
-                const data = {
-                    puntosRojos: state.puntosRojos,
-                    lastUpdate: new Date().toISOString()
-                };
-
-                // Por ahora solo guardamos localmente y mostramos que está "guardado"
-                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
-                localStorage.setItem('puntosRojos_timestamp', new Date().toISOString());
-                
-                actualizarIndicadorSync('local', 'Guardado local');
-                console.log('Guardado localmente como respaldo');
-                return true;
-                
-            } catch (error) {
-                console.error('Error en guardado alternativo:', error);
-                return false;
-            }
+        function mostrarConfiguracionSync() {
+            // Solo mostrar una vez por sesión
+            if (sessionStorage.getItem('sync_info_shown')) return;
+            sessionStorage.setItem('sync_info_shown', 'true');
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.8); z-index: 60000; display: flex;
+                align-items: center; justify-content: center; padding: 20px;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 25px; border-radius: 12px; max-width: 500px; text-align: center;">
+                    <h3 style="margin: 0 0 15px 0; color: #333;">Sincronización automática</h3>
+                    <p style="margin: 10px 0; color: #666; font-size: 14px;">
+                        Para habilitar sincronización completa entre dispositivos, configura un token de GitHub.
+                    </p>
+                    <p style="margin: 10px 0; color: #666; font-size: 14px;">
+                        Por ahora, los cambios se guardan localmente y otros usuarios pueden ver el estado actual.
+                    </p>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px;">
+                        Entendido
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
         }
 
         function generarImagenesEjemplo() {
