@@ -531,11 +531,18 @@
             supabase: null
         };
 
-        // Configuración de Supabase (se carga desde localStorage)
+        // Configuración de Supabase (incluir directamente en el código)
         let supabaseConfig = {
-            url: localStorage.getItem('supabase_url'),
-            key: localStorage.getItem('supabase_key')
+            // REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO SUPABASE
+            url: 'https://igomjrnampwyexuesmlg.supabase.co', // ejemplo: 'https://abcdefgh.supabase.co'
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlnb21qcm5hbXB3eWV4dWVzbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTMwMTcsImV4cCI6MjA3Mzk2OTAxN30.TgwfAL_BEdutGT26SPFQQhLaRXQUMK4rfeL4aSLuj7w' // ejemplo: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         };
+
+        // Si no están configurados, usar localStorage como respaldo
+        if (supabaseConfig.url === 'https://igomjrnampwyexuesmlg.supabase.co') {
+            supabaseConfig.url = localStorage.getItem('supabase_url');
+            supabaseConfig.key = localStorage.getItem('supabase_key');
+        }
 
         // === INICIALIZACIÓN ===
         async function init() {
