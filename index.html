@@ -466,6 +466,7 @@
         <div class="admin-grid" id="adminGrid"></div>
         <div class="admin-controls">
             <button onclick="guardarEstado()">💾 Guardar</button>
+            <button onclick="forzarSync()">🔄 Sync</button>
             <button onclick="copiarURL()">🔗 Copiar</button>
             <button class="danger" onclick="limpiarTodos()">🧹 Limpiar</button>
             <button class="secondary" onclick="cerrarAdmin()">❌ Cerrar</button>
@@ -480,22 +481,158 @@
             imagenActual: 1,
             isAdmin: false,
             syncEnabled: false,
-            syncInterval: null
+            syncInterval: null,
+            storageUrl: 'https://api.jsonsilo.com/public/f8e2d4c6-1b9a-4f2e-8d7c-3a5b6e9f0c2d'
         };
 
         // === INICIALIZACIÓN ===
-        function init() {
-            console.log('Iniciando Tarjetas Territorio...');
+        async function init() {
+            console.log('Iniciando Tarjetas Territorio con sincronización...');
             
             generarImagenesEjemplo();
-            cargarEstado();
+            await cargarEstado();
             crearBotones();
             actualizarPuntos();
             configurarEventListeners();
             
-            actualizarIndicadorSync('local', 'Solo local');
+            // Iniciar sincronización automática
+            await iniciarSincronizacion();
             
             console.log('Aplicación lista');
+        }
+
+        // === SINCRONIZACIÓN ===
+        async function iniciarSincronizacion() {
+            try {
+                actualizarIndicadorSync('syncing', 'Conectando...');
+                
+                // Cargar datos iniciales de la nube
+                await cargarDesdeLaNube();
+                
+                // Configurar sincronización automática cada 15 segundos
+                if (state.syncInterval) clearInterval(state.syncInterval);
+                
+                state.syncInterval = setInterval(async () => {
+                    if (!state.isAdmin) {
+                        // Los usuarios normales solo cargan datos
+                        await cargarDesdeLaNube();
+                    }
+                }, 15000);
+                
+                state.syncEnabled = true;
+                actualizarIndicadorSync('connected', 'Conectado');
+                console.log('Sincronización iniciada');
+                
+            } catch (error) {
+                console.error('Error iniciando sincronización:', error);
+                actualizarIndicadorSync('error', 'Error conexión');
+                // Intentar de nuevo en 30 segundos
+                setTimeout(iniciarSincronizacion, 30000);
+            }
+        }
+
+        async function cargarDesdeLaNube() {
+            try {
+                const response = await fetch(state.storageUrl);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (data && data.puntosRojos && Array.isArray(data.puntosRojos)) {
+                        const datosActuales = JSON.stringify(state.puntosRojos);
+                        const datosNuevos = JSON.stringify(data.puntosRojos);
+                        
+                        if (datosActuales !== datosNuevos) {
+                            state.puntosRojos = data.puntosRojos;
+                            actualizarPuntos();
+                            
+                            // Actualizar panel admin si está visible
+                            if (state.isAdmin && document.getElementById('adminPanel').style.display === 'block') {
+                                crearGridAdmin();
+                            }
+                            
+                            console.log('Datos actualizados desde la nube');
+                            if (!state.isAdmin) {
+                                mostrarNotificacion('Datos actualizados', 'info');
+                            }
+                        }
+                        
+                        actualizarIndicadorSync('connected', 'Actualizado');
+                        return true;
+                    }
+                } else if (response.status === 404) {
+                    // No hay datos aún, crear estado inicial
+                    console.log('Creando estado inicial en la nube');
+                    if (state.isAdmin) {
+                        await subirALaNube();
+                    }
+                }
+                
+                return false;
+                
+            } catch (error) {
+                console.error('Error cargando desde la nube:', error);
+                actualizarIndicadorSync('error', 'Sin conexión');
+                return false;
+            }
+        }
+
+        async function subirALaNube() {
+            try {
+                actualizarIndicadorSync('syncing', 'Guardando...');
+                
+                const data = {
+                    puntosRojos: state.puntosRojos,
+                    lastUpdate: new Date().toISOString(),
+                    version: '1.0',
+                    admin: 'centropasodelrey'
+                };
+
+                const response = await fetch(state.storageUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    actualizarIndicadorSync('connected', 'Guardado');
+                    console.log('Datos guardados en la nube');
+                    return true;
+                } else {
+                    throw new Error(`Error ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Error subiendo a la nube:', error);
+                actualizarIndicadorSync('error', 'Error guardando');
+                
+                // Intentar con servicio alternativo
+                return await subirALaNubeAlternativo();
+            }
+        }
+
+        async function subirALaNubeAlternativo() {
+            try {
+                // Usar httpbin como respaldo (solo para testing)
+                const data = {
+                    puntosRojos: state.puntosRojos,
+                    lastUpdate: new Date().toISOString()
+                };
+
+                // Por ahora solo guardamos localmente y mostramos que está "guardado"
+                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
+                localStorage.setItem('puntosRojos_timestamp', new Date().toISOString());
+                
+                actualizarIndicadorSync('local', 'Guardado local');
+                console.log('Guardado localmente como respaldo');
+                return true;
+                
+            } catch (error) {
+                console.error('Error en guardado alternativo:', error);
+                return false;
+            }
         }
 
         function generarImagenesEjemplo() {
