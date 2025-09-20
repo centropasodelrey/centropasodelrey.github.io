@@ -68,6 +68,7 @@
         .sync-indicator.connected { background: #4CAF50; }
         .sync-indicator.syncing { background: #FF9800; animation: pulse 1s infinite; }
         .sync-indicator.error { background: #f44336; }
+        .sync-indicator.local { background: #666; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -118,7 +119,6 @@
             animation: pulse 2s infinite;
         }
 
-        /* Modal y otros estilos igual que antes... */
         .modal {
             display: none;
             position: fixed;
@@ -393,21 +393,6 @@
             display: none;
         }
 
-        .setup-info {
-            background: rgba(33, 150, 243, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            border-left: 4px solid #2196F3;
-        }
-
-        .setup-info h4 {
-            margin: 0 0 8px 0;
-            color: #1976D2;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .container { padding: 15px; border-radius: 10px; }
@@ -430,8 +415,8 @@
         
         <div class="info-bar">
             <div class="sync-status">
-                <div class="sync-indicator" id="syncIndicator"></div>
-                <span id="statusText">Iniciando...</span>
+                <div class="sync-indicator local" id="syncIndicator"></div>
+                <span id="statusText">Cargando...</span>
             </div>
             <div id="activeCount">Activos: 0/49</div>
         </div>
@@ -463,23 +448,11 @@
     <!-- Login -->
     <div id="loginModal" class="login-modal">
         <div class="login-content">
-            <h2>Configuración Inicial</h2>
-            
-            <div class="setup-info">
-                <h4>Configuración única del administrador:</h4>
-                <p>1. Crea un token en GitHub → Settings → Developer settings → Personal access tokens</p>
-                <p>2. Dale permisos de "gist"</p>
-                <p>3. Pégalo abajo junto con tus credenciales</p>
-            </div>
-            
-            <input type="text" id="username" placeholder="Nombre de usuario" value="admin">
+            <h2>Acceso Administrador</h2>
+            <input type="text" id="username" placeholder="Usuario" value="admin">
             <input type="password" id="password" placeholder="Contraseña" value="123456">
-            <input type="text" id="githubToken" placeholder="Token de GitHub (ghp_...)">
-            
-            <div id="loginError" class="error-message">Error en la configuración</div>
-            
-            <button onclick="configurarAdmin()">Configurar Administrador</button>
-            <button onclick="loginSinSync()">Entrar sin Sincronización</button>
+            <div id="loginError" class="error-message">Usuario o contraseña incorrectos</div>
+            <button onclick="verificarLogin()">Entrar</button>
             <button class="cancel" onclick="cerrarLogin()">Cancelar</button>
         </div>
     </div>
@@ -493,7 +466,6 @@
         <div class="admin-grid" id="adminGrid"></div>
         <div class="admin-controls">
             <button onclick="guardarEstado()">💾 Guardar</button>
-            <button onclick="forzarSync()">🔄 Sync</button>
             <button onclick="copiarURL()">🔗 Copiar</button>
             <button class="danger" onclick="limpiarTodos()">🧹 Limpiar</button>
             <button class="secondary" onclick="cerrarAdmin()">❌ Cerrar</button>
@@ -507,30 +479,21 @@
             puntosRojos: new Array(49).fill(false),
             imagenActual: 1,
             isAdmin: false,
-            syncConfig: {
-                token: localStorage.getItem('github_token'),
-                gistId: localStorage.getItem('gist_id'),
-                enabled: false
-            },
+            syncEnabled: false,
             syncInterval: null
         };
 
         // === INICIALIZACIÓN ===
-        async function init() {
+        function init() {
             console.log('Iniciando Tarjetas Territorio...');
             
             generarImagenesEjemplo();
-            await cargarEstado();
+            cargarEstado();
             crearBotones();
             actualizarPuntos();
             configurarEventListeners();
             
-            // Iniciar sincronización si está configurada
-            if (state.syncConfig.token && state.syncConfig.gistId) {
-                await iniciarSincronizacion();
-            } else {
-                actualizarIndicadorSync('offline', 'Solo local');
-            }
+            actualizarIndicadorSync('local', 'Solo local');
             
             console.log('Aplicación lista');
         }
@@ -555,262 +518,19 @@
             }
         }
 
-        // === SINCRONIZACIÓN CON GITHUB GIST ===
-        async function iniciarSincronizacion() {
-            if (!state.syncConfig.token) {
-                actualizarIndicadorSync('offline', 'Sin configurar');
-                return;
-            }
-
-            try {
-                actualizarIndicadorSync('syncing', 'Conectando...');
-                
-                // Cargar datos iniciales
-                await cargarDesdeGist();
-                
-                // Configurar sincronización automática cada 30 segundos
-                if (state.syncInterval) clearInterval(state.syncInterval);
-                
-                state.syncInterval = setInterval(async () => {
-                    if (!state.isAdmin) {
-                        await cargarDesdeGist(); // Solo cargar para usuarios
-                    }
-                }, 30000);
-                
-                state.syncConfig.enabled = true;
-                actualizarIndicadorSync('connected', 'Conectado');
-                console.log('Sincronización iniciada');
-                
-            } catch (error) {
-                console.error('Error iniciando sincronización:', error);
-                actualizarIndicadorSync('error', 'Error conexión');
-            }
-        }
-
-        async function cargarDesdeGist() {
-            if (!state.syncConfig.gistId || !state.syncConfig.token) {
-                return false;
-            }
-
-            try {
-                const response = await fetch(`https://api.github.com/gists/${state.syncConfig.gistId}`, {
-                    headers: {
-                        'Authorization': `token ${state.syncConfig.token}`,
-                        'Accept': 'application/vnd.github.v3+json'
-                    }
-                });
-
-                if (response.ok) {
-                    const gist = await response.json();
-                    const content = gist.files['territorios-data.json'];
-                    
-                    if (content) {
-                        const data = JSON.parse(content.content);
-                        
-                        if (data.puntosRojos && Array.isArray(data.puntosRojos)) {
-                            const datosActuales = JSON.stringify(state.puntosRojos);
-                            const datosNuevos = JSON.stringify(data.puntosRojos);
-                            
-                            if (datosActuales !== datosNuevos) {
-                                state.puntosRojos = data.puntosRojos;
-                                actualizarPuntos();
-                                
-                                if (state.isAdmin && document.getElementById('adminPanel').style.display === 'block') {
-                                    crearGridAdmin();
-                                }
-                                
-                                if (!state.isAdmin) {
-                                    mostrarNotificacion('Datos actualizados', 'info');
-                                }
-                                
-                                console.log('Datos sincronizados desde la nube');
-                            }
-                            
-                            return true;
-                        }
-                    }
-                } else if (response.status === 404) {
-                    console.log('Gist no encontrado, se creará uno nuevo');
-                    state.syncConfig.gistId = null;
-                    localStorage.removeItem('gist_id');
-                }
-                
-                return false;
-                
-            } catch (error) {
-                console.error('Error cargando desde gist:', error);
-                actualizarIndicadorSync('error', 'Error cargando');
-                return false;
-            }
-        }
-
-        async function subirAGist() {
-            if (!state.syncConfig.token) return false;
-
-            try {
-                actualizarIndicadorSync('syncing', 'Guardando...');
-                
-                const data = {
-                    puntosRojos: state.puntosRojos,
-                    lastUpdate: new Date().toISOString(),
-                    version: '1.0'
-                };
-
-                let url = 'https://api.github.com/gists';
-                let method = 'POST';
-                let body = {
-                    description: 'Tarjetas Territorio - Estado sincronizado',
-                    public: false,
-                    files: {
-                        'territorios-data.json': {
-                            content: JSON.stringify(data, null, 2)
-                        }
-                    }
-                };
-
-                if (state.syncConfig.gistId) {
-                    url = `https://api.github.com/gists/${state.syncConfig.gistId}`;
-                    method = 'PATCH';
-                    body = {
-                        files: {
-                            'territorios-data.json': {
-                                content: JSON.stringify(data, null, 2)
-                            }
-                        }
-                    };
-                }
-
-                const response = await fetch(url, {
-                    method: method,
-                    headers: {
-                        'Authorization': `token ${state.syncConfig.token}`,
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(body)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    
-                    if (!state.syncConfig.gistId) {
-                        state.syncConfig.gistId = result.id;
-                        localStorage.setItem('gist_id', result.id);
-                        console.log('Nuevo gist creado:', result.id);
-                    }
-                    
-                    actualizarIndicadorSync('connected', 'Guardado');
-                    return true;
-                } else {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-                
-            } catch (error) {
-                console.error('Error subiendo a gist:', error);
-                actualizarIndicadorSync('error', 'Error guardando');
-                return false;
-            }
-        }
-
-        function actualizarIndicadorSync(estado, mensaje) {
-            const indicator = document.getElementById('syncIndicator');
-            const statusText = document.getElementById('statusText');
-            
-            if (indicator && statusText) {
-                indicator.className = `sync-indicator ${estado}`;
-                statusText.textContent = mensaje;
-            }
-        }
-
         // === GESTIÓN DE ESTADO ===
-        async function cargarEstado() {
+        function cargarEstado() {
             try {
-                // 1. URL tiene prioridad
-                if (cargarDesdeURL()) {
-                    console.log('Estado cargado desde URL');
-                    return;
-                }
-
-                // 2. Local storage
                 const saved = localStorage.getItem('puntosRojos_territorios');
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (Array.isArray(parsed) && parsed.length === 49) {
                         state.puntosRojos = parsed;
-                        console.log('Estado cargado localmente');
-                        return;
+                        console.log('Estado cargado desde almacenamiento local');
                     }
                 }
-
-                console.log('Estado inicial limpio');
             } catch (error) {
                 console.error('Error cargando estado:', error);
-            }
-        }
-
-        function cargarDesdeURL() {
-            const params = new URLSearchParams(window.location.search);
-            const puntos = params.get('p');
-            
-            if (puntos) {
-                try {
-                    const decoded = decodificarPuntos(puntos);
-                    if (decoded && decoded.length === 49) {
-                        state.puntosRojos = decoded;
-                        return true;
-                    }
-                } catch (error) {
-                    console.warn('Error decodificando URL:', error);
-                }
-            }
-            
-            return false;
-        }
-
-        function codificarPuntos(array) {
-            const binary = array.map(p => p ? '1' : '0').join('');
-            let hex = '';
-            
-            for (let i = 0; i < binary.length; i += 4) {
-                const chunk = binary.substr(i, 4).padEnd(4, '0');
-                hex += parseInt(chunk, 2).toString(16);
-            }
-            
-            return hex;
-        }
-
-        function decodificarPuntos(hex) {
-            try {
-                let binary = '';
-                for (let i = 0; i < hex.length; i++) {
-                    binary += parseInt(hex[i], 16).toString(2).padStart(4, '0');
-                }
-                
-                const result = [];
-                for (let i = 0; i < 49; i++) {
-                    result.push(binary[i] === '1');
-                }
-                
-                return result;
-            } catch (error) {
-                return null;
-            }
-        }
-
-        function actualizarURL() {
-            try {
-                const encoded = codificarPuntos(state.puntosRojos);
-                const url = new URL(window.location);
-                
-                if (encoded && encoded !== codificarPuntos(new Array(49).fill(false))) {
-                    url.searchParams.set('p', encoded);
-                } else {
-                    url.searchParams.delete('p');
-                }
-                
-                window.history.replaceState({}, '', url);
-            } catch (error) {
-                console.warn('Error actualizando URL:', error);
             }
         }
 
@@ -829,20 +549,20 @@
             }
         }
 
+        function actualizarIndicadorSync(estado, mensaje) {
+            const indicator = document.getElementById('syncIndicator');
+            const statusText = document.getElementById('statusText');
+            
+            if (indicator && statusText) {
+                indicator.className = `sync-indicator ${estado}`;
+                statusText.textContent = mensaje;
+            }
+        }
+
         // === ADMINISTRACIÓN ===
         function mostrarLogin() {
             const modal = document.getElementById('loginModal');
-            const tokenInput = document.getElementById('githubToken');
-            
-            if (modal) {
-                modal.style.display = 'block';
-                
-                // Si ya hay token, ocultarlo por seguridad
-                if (state.syncConfig.token) {
-                    tokenInput.style.display = 'none';
-                    tokenInput.previousElementSibling.textContent = 'Token ya configurado';
-                }
-            }
+            if (modal) modal.style.display = 'block';
         }
 
         function cerrarLogin() {
@@ -850,41 +570,7 @@
             if (modal) modal.style.display = 'none';
         }
 
-        async function configurarAdmin() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const token = document.getElementById('githubToken').value;
-            const error = document.getElementById('loginError');
-            
-            if (username === 'admin' && password === '123456') {
-                if (token && token.startsWith('ghp_')) {
-                    // Configurar sincronización
-                    state.syncConfig.token = token;
-                    localStorage.setItem('github_token', token);
-                    
-                    state.isAdmin = true;
-                    cerrarLogin();
-                    
-                    // Iniciar sincronización
-                    await iniciarSincronizacion();
-                    
-                    mostrarPanelAdmin();
-                    mostrarNotificacion('Administrador configurado con sincronización', 'success');
-                    
-                } else {
-                    // Login sin token
-                    loginSinSync();
-                }
-            } else {
-                if (error) {
-                    error.style.display = 'block';
-                    error.textContent = 'Usuario o contraseña incorrectos';
-                    setTimeout(() => error.style.display = 'none', 3000);
-                }
-            }
-        }
-
-        function loginSinSync() {
+        function verificarLogin() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const error = document.getElementById('loginError');
@@ -893,12 +579,10 @@
                 state.isAdmin = true;
                 cerrarLogin();
                 mostrarPanelAdmin();
-                actualizarIndicadorSync('offline', 'Solo local');
-                mostrarNotificacion('Administrador - modo local', 'info');
+                mostrarNotificacion('Sesión iniciada como administrador', 'success');
             } else {
                 if (error) {
                     error.style.display = 'block';
-                    error.textContent = 'Usuario o contraseña incorrectos';
                     setTimeout(() => error.style.display = 'none', 3000);
                 }
             }
@@ -969,11 +653,6 @@
             // Auto-guardar
             setTimeout(() => {
                 localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
-                actualizarURL();
-                
-                if (state.syncConfig.enabled && state.isAdmin) {
-                    subirAGist();
-                }
             }, 100);
         }
 
@@ -995,41 +674,11 @@
         function guardarEstado() {
             try {
                 localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
-                actualizarURL();
-                
-                if (state.syncConfig.enabled && state.isAdmin) {
-                    subirAGist().then(success => {
-                        if (success) {
-                            mostrarNotificacion('Estado guardado y sincronizado', 'success');
-                        } else {
-                            mostrarNotificacion('Guardado localmente (error sync)', 'warning');
-                        }
-                    });
-                } else {
-                    mostrarNotificacion('Estado guardado localmente', 'success');
-                }
+                mostrarNotificacion('Estado guardado correctamente', 'success');
+                console.log('Estado guardado');
             } catch (error) {
                 console.error('Error guardando:', error);
                 mostrarNotificacion('Error guardando estado', 'error');
-            }
-        }
-
-        async function forzarSync() {
-            if (!state.syncConfig.enabled) {
-                mostrarNotificacion('Sincronización no configurada', 'warning');
-                return;
-            }
-            
-            try {
-                if (state.isAdmin) {
-                    await subirAGist();
-                    await cargarDesdeGist();
-                } else {
-                    await cargarDesdeGist();
-                }
-                mostrarNotificacion('Sincronización completada', 'success');
-            } catch (error) {
-                mostrarNotificacion('Error en sincronización', 'error');
             }
         }
 
@@ -1136,7 +785,7 @@
             
             modal.innerHTML = `
                 <div style="background: white; padding: 25px; border-radius: 12px; max-width: 90%; text-align: center;">
-                    <h3 style="margin: 0 0 15px 0; color: #333;">Copia esta URL para compartir:</h3>
+                    <h3 style="margin: 0 0 15px 0; color: #333;">Comparte esta URL:</h3>
                     <input type="text" value="${url}" style="width: 100%; padding: 10px; border: 2px solid #4CAF50; border-radius: 6px; font-size: 14px; text-align: center;" readonly onclick="this.select()">
                     <br><br>
                     <button onclick="this.parentElement.parentElement.remove()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerrar</button>
@@ -1201,7 +850,7 @@
                 if (loginModal && loginModal.style.display === 'block') {
                     switch (event.key) {
                         case 'Enter':
-                            configurarAdmin();
+                            verificarLogin();
                             break;
                         case 'Escape':
                             cerrarLogin();
@@ -1218,7 +867,7 @@
                 if (e.target === this) cerrarModal();
             });
 
-            // Gestos táctiles
+            // Gestos táctiles para navegación
             let startX = 0;
             const imageModal = document.getElementById('imageModal');
             
@@ -1249,36 +898,24 @@
                 state.puntosRojos.fill(false);
                 actualizarPuntos();
                 localStorage.removeItem('puntosRojos_territorios');
-                actualizarURL();
-                if (state.syncConfig.enabled && state.isAdmin) subirAGist();
                 mostrarNotificacion('Estado reiniciado', 'info');
+            },
+            togglePunto: (numero) => {
+                if (numero >= 1 && numero <= 49) {
+                    const wasAdmin = state.isAdmin;
+                    state.isAdmin = true;
+                    togglePunto(numero);
+                    state.isAdmin = wasAdmin;
+                }
             },
             exportState: () => {
                 const exportData = {
                     puntosRojos: state.puntosRojos,
-                    url: window.location.href,
-                    syncEnabled: state.syncConfig.enabled,
+                    activePoints: state.puntosRojos.filter(Boolean).length,
                     timestamp: new Date().toISOString()
                 };
                 console.log('Estado exportado:', exportData);
                 return exportData;
-            },
-            configurarToken: (token) => {
-                if (token && token.startsWith('ghp_')) {
-                    state.syncConfig.token = token;
-                    localStorage.setItem('github_token', token);
-                    console.log('Token configurado. Reinicia la página para activar sincronización.');
-                    return true;
-                }
-                return false;
-            },
-            resetearSync: () => {
-                localStorage.removeItem('github_token');
-                localStorage.removeItem('gist_id');
-                state.syncConfig = { token: null, gistId: null, enabled: false };
-                if (state.syncInterval) clearInterval(state.syncInterval);
-                actualizarIndicadorSync('offline', 'Sync reseteada');
-                console.log('Sincronización reseteada');
             }
         };
 
@@ -1290,18 +927,12 @@
 
         // === INICIALIZAR ===
         document.addEventListener('DOMContentLoaded', function() {
-            init().catch(error => {
-                console.error('Error inicializando:', error);
-                mostrarNotificacion('Error de inicialización', 'error');
-                actualizarIndicadorSync('error', 'Error inicio');
-            });
+            init();
         });
 
-        console.log('🎯 Tarjetas Territorio - Sincronización GitHub');
-        console.log('🔄 Sincronización automática con GitHub Gist');
-        console.log('📱 Optimizado para móviles');
-        console.log('🔧 Debug: window.territoriosApp');
-        console.log('⚙️ Configuración inicial necesaria para sincronización');
+        console.log('Tarjetas Territorio - Versión Simple y Funcional');
+        console.log('Login: admin / 123456');
+        console.log('Debug: window.territoriosApp');
     </script>
 </body>
 </html>
