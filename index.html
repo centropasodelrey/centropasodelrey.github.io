@@ -75,42 +75,6 @@
             50% { opacity: 0.5; }
         }
 
-        .setup-banner {
-            background: linear-gradient(135deg, #2196F3, #1976D2);
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .setup-banner h3 {
-            margin: 0 0 10px 0;
-            font-size: 18px;
-        }
-
-        .setup-banner p {
-            margin: 5px 0;
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .setup-banner button {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 5px;
-            font-weight: bold;
-            transition: all 0.2s ease;
-        }
-
-        .setup-banner button:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
         .buttons-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -448,16 +412,6 @@
 <body>
     <div class="container">
         <h1>Tarjetas Territorio</h1>
-
-        <!-- Banner de configuración -->
-        <div class="setup-banner" id="setupBanner">
-            <h3>Configuración de Base de Datos</h3>
-            <p>Para sincronización completa, configura Supabase (gratis)</p>
-            <p>1. Ve a <strong>supabase.com</strong> → Crear proyecto gratuito</p>
-            <p>2. Copia URL y API Key de tu proyecto</p>
-            <button onclick="mostrarConfigSupabase()">Configurar Ahora</button>
-            <button onclick="ocultarBanner()">Más Tarde</button>
-        </div>
         
         <div class="info-bar">
             <div class="sync-status">
@@ -531,22 +485,15 @@
             supabase: null
         };
 
-        // Configuración de Supabase (incluir directamente en el código)
+        // Configuración de Supabase - REEMPLAZA CON TUS DATOS REALES
         let supabaseConfig = {
-            // REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO SUPABASE
             url: 'https://igomjrnampwyexuesmlg.supabase.co', // ejemplo: 'https://abcdefgh.supabase.co'
             key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlnb21qcm5hbXB3eWV4dWVzbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTMwMTcsImV4cCI6MjA3Mzk2OTAxN30.TgwfAL_BEdutGT26SPFQQhLaRXQUMK4rfeL4aSLuj7w' // ejemplo: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         };
 
-        // Si no están configurados, usar localStorage como respaldo
-        if (supabaseConfig.url === 'TU_URL_DE_SUPABASE_AQUI') {
-            supabaseConfig.url = localStorage.getItem('supabase_url');
-            supabaseConfig.key = localStorage.getItem('supabase_key');
-        }
-
         // === INICIALIZACIÓN ===
         async function init() {
-            console.log('Iniciando Tarjetas Territorio con base de datos...');
+            console.log('Iniciando Tarjetas Territorio...');
             
             generarImagenesEjemplo();
             await inicializarSupabase();
@@ -555,16 +502,10 @@
             actualizarPuntos();
             configurarEventListeners();
             
-            // Ocultar banner si ya está configurado
-            if (supabaseConfig.url && supabaseConfig.key) {
-                ocultarBanner();
-            }
-            
             console.log('Aplicación lista');
         }
 
         function generarImagenesEjemplo() {
-            // URLs de ejemplo - reemplaza con tus imágenes reales
             state.imageUrls = Array(49).fill(0).map((_, i) => 
                 `https://picsum.photos/800/600?random=${i + 1}`
             );
@@ -583,187 +524,33 @@
             }
         }
 
-        // === CONFIGURACIÓN DE SUPABASE ===
+        // === SUPABASE ===
         async function inicializarSupabase() {
-            if (supabaseConfig.url && supabaseConfig.key) {
+            if (supabaseConfig.url && supabaseConfig.key && 
+                supabaseConfig.url !== 'TU_URL_DE_SUPABASE_AQUI') {
                 try {
                     state.supabase = supabase.createClient(supabaseConfig.url, supabaseConfig.key);
-                    
-                    // Verificar conexión y crear tablas si es necesario
-                    await crearTablasSupabase();
-                    
-                    // Iniciar sincronización automática
-                    await iniciarSincronizacion();
-                    
-                    actualizarIndicadorSync('connected', 'Base de datos conectada');
+                    await cargarDesdeBD();
+                    iniciarSincronizacion();
+                    actualizarIndicadorSync('connected', 'Conectado');
                     state.syncEnabled = true;
-                    
                 } catch (error) {
-                    console.error('Error inicializando Supabase:', error);
-                    actualizarIndicadorSync('error', 'Error de conexión');
+                    console.error('Error con Supabase:', error);
+                    actualizarIndicadorSync('error', 'Error conexión');
                 }
             } else {
                 actualizarIndicadorSync('error', 'Sin configurar');
             }
         }
 
-        async function crearTablasSupabase() {
-            try {
-                // Crear tabla de territorios si no existe
-                const { data, error } = await state.supabase
-                    .from('territorios')
-                    .select('*')
-                    .limit(1);
-
-                if (error && error.code === 'PGRST116') {
-                    // Tabla no existe, mostrar instrucciones
-                    mostrarInstruccionesSQL();
-                }
-            } catch (error) {
-                console.error('Error verificando tablas:', error);
-            }
-        }
-
-        function mostrarInstruccionesSQL() {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.8); z-index: 60000; display: flex;
-                align-items: center; justify-content: center; padding: 20px;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; padding: 25px; border-radius: 12px; max-width: 600px; max-height: 80vh; overflow-y: auto;">
-                    <h3 style="margin: 0 0 15px 0; color: #333;">Configurar Tablas en Supabase</h3>
-                    <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                        Ve al SQL Editor en tu panel de Supabase y ejecuta este código:
-                    </p>
-                    <textarea readonly onclick="this.select()" style="width: 100%; height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 12px;">-- Crear tabla de territorios
-CREATE TABLE IF NOT EXISTS territorios (
-  id SERIAL PRIMARY KEY,
-  puntos_rojos JSONB NOT NULL DEFAULT '[]'::jsonb,
-  last_updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Crear tabla de usuarios admin
-CREATE TABLE IF NOT EXISTS admin_users (
-  id SERIAL PRIMARY KEY,
-  username VARCHAR(50) UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Insertar estado inicial
-INSERT INTO territorios (puntos_rojos) 
-VALUES ('[]'::jsonb) 
-ON CONFLICT DO NOTHING;
-
--- Crear usuario admin por defecto (cambiar contraseña después)
-INSERT INTO admin_users (username, password_hash) 
-VALUES ('admin', 'admin123') 
-ON CONFLICT (username) DO NOTHING;</textarea>
-                    <p style="margin: 15px 0 10px 0; color: #666; font-size: 14px;">
-                        <strong>Importante:</strong> Cambia la contraseña por defecto después de ejecutar el SQL.
-                    </p>
-                    <button onclick="this.parentElement.parentElement.remove()" 
-                            style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                        Entendido
-                    </button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        }
-
-        function mostrarConfigSupabase() {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.8); z-index: 60000; display: flex;
-                align-items: center; justify-content: center; padding: 20px;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; padding: 25px; border-radius: 12px; max-width: 500px;">
-                    <h3 style="margin: 0 0 15px 0; color: #333;">Configurar Supabase</h3>
-                    <input type="url" id="supabaseUrl" placeholder="https://tu-proyecto.supabase.co" 
-                           style="width: 100%; padding: 10px; margin: 8px 0; border: 2px solid #ddd; border-radius: 6px;">
-                    <input type="text" id="supabaseKey" placeholder="API Key (anon, public)" 
-                           style="width: 100%; padding: 10px; margin: 8px 0; border: 2px solid #ddd; border-radius: 6px;">
-                    <div style="margin: 15px 0; font-size: 14px; color: #666;">
-                        <p><strong>Cómo obtener estos datos:</strong></p>
-                        <p>1. Ve a <a href="https://supabase.com" target="_blank">supabase.com</a></p>
-                        <p>2. Crea un proyecto gratuito</p>
-                        <p>3. En Settings → API encontrarás URL y anon key</p>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button onclick="guardarConfigSupabase()" 
-                                style="flex: 1; background: #4CAF50; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                            Guardar
-                        </button>
-                        <button onclick="this.parentElement.parentElement.remove()" 
-                                style="flex: 1; background: #666; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">
-                            Cancelar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        }
-
-        function guardarConfigSupabase() {
-            const url = document.getElementById('supabaseUrl').value.trim();
-            const key = document.getElementById('supabaseKey').value.trim();
-            
-            if (!url || !key) {
-                alert('Por favor completa ambos campos');
-                return;
-            }
-            
-            localStorage.setItem('supabase_url', url);
-            localStorage.setItem('supabase_key', key);
-            
-            supabaseConfig.url = url;
-            supabaseConfig.key = key;
-            
-            // Cerrar modal
-            document.querySelector('.modal').remove();
-            
-            // Reinicializar
-            inicializarSupabase();
-            ocultarBanner();
-            
-            mostrarNotificacion('Supabase configurado correctamente', 'success');
-        }
-
-        function ocultarBanner() {
-            const banner = document.getElementById('setupBanner');
-            if (banner) banner.style.display = 'none';
-        }
-
-        // === SINCRONIZACIÓN CON BASE DE DATOS ===
-        async function iniciarSincronizacion() {
+        function iniciarSincronizacion() {
             if (!state.supabase) return;
             
-            try {
-                // Cargar datos iniciales
+            if (state.syncInterval) clearInterval(state.syncInterval);
+            
+            state.syncInterval = setInterval(async () => {
                 await cargarDesdeBD();
-                
-                // Sincronización automática cada 15 segundos
-                if (state.syncInterval) clearInterval(state.syncInterval);
-                
-                state.syncInterval = setInterval(async () => {
-                    if (!state.isAdmin) {
-                        await cargarDesdeBD();
-                    }
-                }, 15000);
-                
-                console.log('Sincronización con BD iniciada');
-                
-            } catch (error) {
-                console.error('Error iniciando sincronización:', error);
-            }
+            }, 10000);
         }
 
         async function cargarDesdeBD() {
@@ -779,8 +566,7 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                     .limit(1);
 
                 if (error) {
-                    console.error('Error cargando desde BD:', error);
-                    actualizarIndicadorSync('error', 'Error cargando');
+                    actualizarIndicadorSync('error', 'Error BD');
                     return false;
                 }
 
@@ -799,11 +585,14 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                                 crearGridAdmin();
                             }
                             
-                            if (!state.isAdmin) {
-                                mostrarNotificacion('Datos actualizados desde la base de datos', 'info');
+                            // Actualizar modal si está abierto
+                            if (document.getElementById('imageModal').style.display === 'block') {
+                                actualizarPuntoModal();
                             }
                             
-                            console.log('Datos sincronizados desde BD');
+                            if (!state.isAdmin) {
+                                mostrarNotificacion('Datos actualizados', 'info');
+                            }
                         }
                     }
                 }
@@ -812,7 +601,7 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                 return true;
 
             } catch (error) {
-                console.error('Error cargando desde BD:', error);
+                console.error('Error cargando BD:', error);
                 actualizarIndicadorSync('error', 'Error BD');
                 return false;
             }
@@ -824,7 +613,7 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             try {
                 actualizarIndicadorSync('syncing', 'Guardando...');
 
-                const { data, error } = await state.supabase
+                const { error } = await state.supabase
                     .from('territorios')
                     .update({ 
                         puntos_rojos: state.puntosRojos,
@@ -833,49 +622,24 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                     .eq('id', 1);
 
                 if (error) {
-                    console.error('Error guardando en BD:', error);
                     actualizarIndicadorSync('error', 'Error guardando');
                     return false;
                 }
 
                 actualizarIndicadorSync('connected', 'Guardado');
-                console.log('Datos guardados en BD');
                 return true;
 
             } catch (error) {
-                console.error('Error guardando en BD:', error);
-                actualizarIndicadorSync('error', 'Error BD');
-                return false;
-            }
-        }
-
-        // === AUTENTICACIÓN CON BASE DE DATOS ===
-        async function verificarLoginBD(username, password) {
-            if (!state.supabase) return false;
-
-            try {
-                const { data, error } = await state.supabase
-                    .from('admin_users')
-                    .select('*')
-                    .eq('username', username)
-                    .eq('password_hash', password)
-                    .single();
-
-                return !error && data;
-
-            } catch (error) {
-                console.error('Error verificando login:', error);
+                console.error('Error guardando BD:', error);
                 return false;
             }
         }
 
         // === GESTIÓN DE ESTADO ===
         async function cargarEstado() {
-            // Si hay BD configurada, cargar desde ahí
             if (state.supabase) {
                 await cargarDesdeBD();
             } else {
-                // Fallback a localStorage
                 try {
                     const saved = localStorage.getItem('puntosRojos_territorios');
                     if (saved) {
@@ -885,7 +649,7 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                         }
                     }
                 } catch (error) {
-                    console.error('Error cargando estado local:', error);
+                    console.error('Error cargando local:', error);
                 }
             }
         }
@@ -917,13 +681,11 @@ ON CONFLICT (username) DO NOTHING;</textarea>
 
         // === ADMINISTRACIÓN ===
         function mostrarLogin() {
-            const modal = document.getElementById('loginModal');
-            if (modal) modal.style.display = 'block';
+            document.getElementById('loginModal').style.display = 'block';
         }
 
         function cerrarLogin() {
-            const modal = document.getElementById('loginModal');
-            if (modal) modal.style.display = 'none';
+            document.getElementById('loginModal').style.display = 'none';
         }
 
         async function verificarLogin() {
@@ -933,11 +695,20 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             
             let loginExitoso = false;
 
-            // Si hay BD configurada, verificar ahí
             if (state.supabase) {
-                loginExitoso = await verificarLoginBD(username, password);
+                try {
+                    const { data } = await state.supabase
+                        .from('admin_users')
+                        .select('*')
+                        .eq('username', username)
+                        .eq('password_hash', password)
+                        .single();
+                    
+                    loginExitoso = !!data;
+                } catch (err) {
+                    loginExitoso = false;
+                }
             } else {
-                // Login local por defecto
                 loginExitoso = (username === 'admin' && password === 'admin123');
             }
 
@@ -945,40 +716,32 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                 state.isAdmin = true;
                 cerrarLogin();
                 mostrarPanelAdmin();
-                mostrarNotificacion('Sesión iniciada como administrador', 'success');
+                mostrarNotificacion('Sesión iniciada', 'success');
             } else {
-                if (error) {
-                    error.style.display = 'block';
-                    setTimeout(() => error.style.display = 'none', 3000);
-                }
+                error.style.display = 'block';
+                setTimeout(() => error.style.display = 'none', 3000);
             }
         }
 
         function mostrarPanelAdmin() {
             const panel = document.getElementById('adminPanel');
-            if (panel) {
-                panel.style.display = 'block';
-                crearGridAdmin();
-            }
+            panel.style.display = 'block';
+            crearGridAdmin();
         }
 
         function cerrarAdmin() {
-            const panel = document.getElementById('adminPanel');
-            if (panel) panel.style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
             state.isAdmin = false;
         }
 
         function crearGridAdmin() {
             const grid = document.getElementById('adminGrid');
-            if (!grid) return;
-            
             grid.innerHTML = '';
             
             for (let i = 1; i <= 49; i++) {
                 const btn = document.createElement('button');
                 btn.className = 'admin-btn';
                 btn.textContent = i;
-                btn.title = `Territorio ${i}`;
                 
                 if (state.puntosRojos[i - 1]) {
                     btn.classList.add('active');
@@ -995,17 +758,14 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             const index = numero - 1;
             state.puntosRojos[index] = !state.puntosRojos[index];
             
-            // Actualizar UI inmediatamente
             const punto = document.getElementById(`punto-${numero}`);
             if (punto) {
                 punto.style.display = state.puntosRojos[index] ? 'block' : 'none';
             }
             
-            if (state.imagenActual === numero) {
-                const puntoModal = document.getElementById('puntoModal');
-                if (puntoModal) {
-                    puntoModal.style.display = state.puntosRojos[index] ? 'block' : 'none';
-                }
+            // Actualizar modal si está abierto y es el territorio actual
+            if (state.imagenActual === numero && document.getElementById('imageModal').style.display === 'block') {
+                actualizarPuntoModal();
             }
             
             const adminBtns = document.querySelectorAll('.admin-btn');
@@ -1016,7 +776,6 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             
             actualizarPuntos();
             
-            // Auto-guardar
             setTimeout(async () => {
                 if (state.supabase) {
                     await guardarEnBD();
@@ -1034,45 +793,33 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                 actualizarPuntos();
                 crearGridAdmin();
                 
-                const puntoModal = document.getElementById('puntoModal');
-                if (puntoModal) puntoModal.style.display = 'none';
+                if (document.getElementById('imageModal').style.display === 'block') {
+                    actualizarPuntoModal();
+                }
                 
                 guardarEstado();
             }
         }
 
         async function guardarEstado() {
-            try {
-                if (state.supabase) {
-                    const success = await guardarEnBD();
-                    if (success) {
-                        mostrarNotificacion('Estado guardado en base de datos', 'success');
-                    } else {
-                        mostrarNotificacion('Error guardando en base de datos', 'error');
-                    }
-                } else {
-                    localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
-                    mostrarNotificacion('Estado guardado localmente', 'success');
-                }
-            } catch (error) {
-                console.error('Error guardando:', error);
-                mostrarNotificacion('Error guardando estado', 'error');
+            if (state.supabase) {
+                const success = await guardarEnBD();
+                mostrarNotificacion(success ? 'Guardado en BD' : 'Error guardando', success ? 'success' : 'error');
+            } else {
+                localStorage.setItem('puntosRojos_territorios', JSON.stringify(state.puntosRojos));
+                mostrarNotificacion('Guardado localmente', 'success');
             }
         }
 
         async function forzarSync() {
-            try {
-                if (state.supabase) {
-                    if (state.isAdmin) {
-                        await guardarEnBD();
-                    }
-                    await cargarDesdeBD();
-                    mostrarNotificacion('Sincronización completada', 'success');
-                } else {
-                    mostrarNotificacion('Configura Supabase para sincronización', 'warning');
+            if (state.supabase) {
+                if (state.isAdmin) {
+                    await guardarEnBD();
                 }
-            } catch (error) {
-                mostrarNotificacion('Error en sincronización', 'error');
+                await cargarDesdeBD();
+                mostrarNotificacion('Sincronización completada', 'success');
+            } else {
+                mostrarNotificacion('Supabase no configurado', 'warning');
             }
         }
 
@@ -1088,29 +835,29 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             const modal = document.getElementById('imageModal');
             const imagen = document.getElementById('modalImage');
             const titulo = document.getElementById('imageTitle');
-            const puntoModal = document.getElementById('puntoModal');
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
-            
-            if (!modal || !imagen) return;
             
             modal.style.display = 'block';
             imagen.src = state.imageUrls[state.imagenActual - 1];
             imagen.alt = `Territorio ${state.imagenActual}`;
             
-            if (titulo) {
-                titulo.innerHTML = `Territorio ${state.imagenActual} de 49 <span class="punto-rojo-modal" id="puntoModal"></span>`;
-            }
+            titulo.innerHTML = `Territorio ${state.imagenActual} de 49 <span class="punto-rojo-modal" id="puntoModal"></span>`;
             
-            if (puntoModal) {
-                puntoModal.style.display = state.puntosRojos[state.imagenActual - 1] ? 'block' : 'none';
-            }
+            actualizarPuntoModal();
             
-            if (prevBtn) prevBtn.style.display = 'flex';
-            if (nextBtn) nextBtn.style.display = 'flex';
+            prevBtn.style.display = 'flex';
+            nextBtn.style.display = 'flex';
             
             actualizarNavegacion();
             document.body.style.overflow = 'hidden';
+        }
+
+        function actualizarPuntoModal() {
+            const puntoModal = document.getElementById('puntoModal');
+            if (puntoModal) {
+                puntoModal.style.display = state.puntosRojos[state.imagenActual - 1] ? 'block' : 'none';
+            }
         }
 
         function actualizarNavegacion() {
@@ -1147,9 +894,9 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             
-            if (modal) modal.style.display = 'none';
-            if (prevBtn) prevBtn.style.display = 'none';
-            if (nextBtn) nextBtn.style.display = 'none';
+            modal.style.display = 'none';
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
             
             document.body.style.overflow = '';
         }
@@ -1160,7 +907,7 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(url).then(() => {
-                    mostrarNotificacion('URL copiada al portapapeles', 'success');
+                    mostrarNotificacion('URL copiada', 'success');
                 }).catch(() => {
                     mostrarURLFallback(url);
                 });
@@ -1182,20 +929,11 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                     <h3 style="margin: 0 0 15px 0; color: #333;">Comparte esta URL:</h3>
                     <input type="text" value="${url}" style="width: 100%; padding: 10px; border: 2px solid #4CAF50; border-radius: 6px; font-size: 14px; text-align: center;" readonly onclick="this.select()">
                     <br><br>
-                    <p style="font-size: 12px; color: #666; margin: 10px 0;">Los cambios se sincronizan automáticamente entre dispositivos</p>
                     <button onclick="this.parentElement.parentElement.remove()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">Cerrar</button>
                 </div>
             `;
             
             document.body.appendChild(modal);
-            
-            setTimeout(() => {
-                const input = modal.querySelector('input');
-                if (input) {
-                    input.focus();
-                    input.select();
-                }
-            }, 100);
         }
 
         function mostrarNotificacion(mensaje, tipo = 'info') {
@@ -1254,11 +992,11 @@ ON CONFLICT (username) DO NOTHING;</textarea>
                 }
             });
 
-            document.getElementById('loginModal')?.addEventListener('click', function(e) {
+            document.getElementById('loginModal').addEventListener('click', function(e) {
                 if (e.target === this) cerrarLogin();
             });
 
-            document.getElementById('imageModal')?.addEventListener('click', function(e) {
+            document.getElementById('imageModal').addEventListener('click', function(e) {
                 if (e.target === this) cerrarModal();
             });
 
@@ -1266,40 +1004,23 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             let startX = 0;
             const imageModal = document.getElementById('imageModal');
             
-            if (imageModal) {
-                imageModal.addEventListener('touchstart', function(e) {
-                    startX = e.changedTouches[0].screenX;
-                }, { passive: true });
+            imageModal.addEventListener('touchstart', function(e) {
+                startX = e.changedTouches[0].screenX;
+            }, { passive: true });
 
-                imageModal.addEventListener('touchend', function(e) {
-                    const endX = e.changedTouches[0].screenX;
-                    const diff = startX - endX;
-                    
-                    if (Math.abs(diff) > 50) {
-                        if (diff > 0) {
-                            imagenSiguiente();
-                        } else {
-                            imagenAnterior();
-                        }
+            imageModal.addEventListener('touchend', function(e) {
+                const endX = e.changedTouches[0].screenX;
+                const diff = startX - endX;
+                
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        imagenSiguiente();
+                    } else {
+                        imagenAnterior();
                     }
-                }, { passive: true });
-            }
+                }
+            }, { passive: true });
         }
-
-        // === API DE DEBUG ===
-        window.territoriosApp = {
-            getState: () => ({ ...state }),
-            configurarSupabase: (url, key) => {
-                localStorage.setItem('supabase_url', url);
-                localStorage.setItem('supabase_key', key);
-                location.reload();
-            },
-            resetearConfig: () => {
-                localStorage.removeItem('supabase_url');
-                localStorage.removeItem('supabase_key');
-                location.reload();
-            }
-        };
 
         // === INICIALIZAR ===
         document.addEventListener('DOMContentLoaded', function() {
@@ -1309,9 +1030,8 @@ ON CONFLICT (username) DO NOTHING;</textarea>
             });
         });
 
-        console.log('Tarjetas Territorio - Con Base de Datos Real');
-        console.log('Usa Supabase para sincronización entre dispositivos');
-        console.log('Debug: window.territoriosApp');
+        console.log('Tarjetas Territorio - Sincronización con Base de Datos');
+        console.log('Reemplaza las credenciales de Supabase en el código');
     </script>
 </body>
 </html>
