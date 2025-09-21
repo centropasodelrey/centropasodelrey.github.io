@@ -487,8 +487,8 @@
 
         // Configuración de Supabase - REEMPLAZA CON TUS DATOS REALES
         let supabaseConfig = {
-            url: 'https://igomjrnampwyexuesmlg.supabase.co', // ejemplo: 'https://abcdefgh.supabase.co'
-            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlnb21qcm5hbXB3eWV4dWVzbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTMwMTcsImV4cCI6MjA3Mzk2OTAxN30.TgwfAL_BEdutGT26SPFQQhLaRXQUMK4rfeL4aSLuj7w' // ejemplo: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            url: 'TU_URL_DE_SUPABASE_AQUI', // ejemplo: 'https://abcdefgh.supabase.co'
+            key: 'TU_API_KEY_AQUI' // ejemplo: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
         };
 
         // === INICIALIZACIÓN ===
@@ -506,9 +506,58 @@
         }
 
         function generarImagenesEjemplo() {
-            state.imageUrls = Array(49).fill(0).map((_, i) => 
-                `https://picsum.photos/800/600?random=${i + 1}`
-            );
+            // REEMPLAZA ESTAS URLs CON TUS IMÁGENES REALES
+            state.imageUrls = [
+            'https://drive.google.com/thumbnail?id=1DrET5Fdr8L5MQJypbGO0sg29_GAyYt7Q&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1vXU2pG8NFX0F5r9PJpcG9Kp-RotRZZ5H&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1czRPzxRL_7kByxorHaJFCP4j8xDfU4d1&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1uMK1aarEJfhHKmOcG8uqH9i-_7zsrl1S&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1LPGDyGRR7a09HRHO6YLA0rd7R8gyQg_M&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1c5XIrc51LuXA_R8t2MdchTtpOQBK7GT6&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1fuutOaeJNs6Pajo7TOLsXw8JO3vRcdP_&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1QcDtMvPIHTEt30A4865yvzEC8N4D--WS&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1UyGUMX8CvnpXd2wq8SAikSe4hGheecrq&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1WDQBPEwLwUz67OPmkJm44VDTXTXBLCIX&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1z06MwYazBoy_yBg1M5srGhDk5zJwATv4&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1WP3HmSVS1x_fl5PHVNzj6gOFSnteaFRO&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1_my3frQzTltqOGv6cXIVMQw0Sqs_DjWa&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1ZOE-PUSBY3aNwXH2luYzfHYWeEsG9Cqm&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1Nf4PxnUkBHSj_FbGXMO_vAJa9msQ13fm&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1b4AktVSfr6qul-LGFir4u1FY3oKf7QZl&sz=w1000',
+            'https://drive.google.com/thumbnail?id=10eGDyhu222Kd3s0qpriLBjYlKbYvKvRS&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1ALUBT_x56At96eyC-sAjZe4B58NwUb3G&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1jZvsf2PPm-aHXkeqN1RZb2BInH51w29c&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1Gs0SNJEFXvUont_fEMpq9xVcfzpypr7K&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1Nh1bsTD09ZJyHYk5Q0GHEw7nPK1vmd46&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1evJQhoVpW8lFFYEQ45PzSE6Pd0oxZELF&sz=w1000',
+            'https://drive.google.com/thumbnail?id=10ZmsEjELMQviY45og8-d97pz-ySh1bO8&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1XWotnSv2fdXIJHQHmXhwUEjA4ErTK_jh&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1qxFRbAGmIEoHMbmI5mbpixHs-hWUS5pG&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1jc5tPMusyAGWsrqiHRLZurp95k1dqkTD&sz=w1000',
+            'https://drive.google.com/thumbnail?id=18J0W4uwwGyXSTHqXsaa2Ivsj57WcP__Z&sz=w1000',
+            'https://drive.google.com/thumbnail?id=178wPMPE9zJQf-Q_M1CUhlCCe9-YuwDJ3&sz=w1000',
+            'https://drive.google.com/thumbnail?id=16Ne-WKMVQTbRb87x3p5pHkDC0ElLkTKX&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1eLCvFrCHlAPGLgc4euLjLclPDvZvrn3B&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1SRNG8hG_3ItOK91hv-ByrafV0Ei7dD4-&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1xWmlCkmov6uXZR1dVqpg3CrYUmsb5od8&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1a3shGyo-fcLAvBaulFglHMIppLrcqqqz&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1JzmoZm8KsNNyUbDtF9YHlAwtiht6hbj0&sz=w1000',
+            'https://drive.google.com/thumbnail?id=11_pzzwbHq_3g60iy8hgY9wGHJhH6DP5C&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1tpwe2DcAbkVt9FAsPdF7F90gqT969mML&sz=w1000',
+            'https://drive.google.com/thumbnail?id=151MB_zgRz-74-QKLq4qg-H_y93_Zg5Bw&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1juO4T0lxj-c_kqqPJTPhZN-I3jJk2sZy&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1WsHt0zyg1p78D4pxo-lmb24uxN1K_6If&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1jeHG4wUASkAzp_x-LMcMgTo5r0p4HaTs&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1NsHJYsYacEKV8y1S_7Gt5QuLjSp5bAaK&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1dqGb_7OnXdQBAP1xGYcvE3ObcHqKFzxL&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1TZ_FwuLE0flLyznSLeLMY_V4FnuCFG7k&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1jQ5OpIRGuVmASk05VpegBAIuR137LlOc&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1Qd1Qssj_3ecZLzBfURNptBYdXtuqSzzC&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1hj__tTlo_bqPJ2xeO_TbPYqvAnDNZRS7&sz=w1000',
+            'https://drive.google.com/thumbnail?id=17dadqGLYTkolh0ErJ48maq8P9fApkY37&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1nwsQT5NskczGbPu1P_tT6gM0FTxXVIm0&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1G7R4RE9GO77HE9tElfJC3g-m_W9Dkorg&sz=w1000',
+            ];
         }
 
         function crearBotones() {
@@ -992,15 +1041,15 @@
                 }
             });
 
+            // Solo cerrar login modal haciendo clic fuera
             document.getElementById('loginModal').addEventListener('click', function(e) {
                 if (e.target === this) cerrarLogin();
             });
 
-            document.getElementById('imageModal').addEventListener('click', function(e) {
-                if (e.target === this) cerrarModal();
-            });
+            // REMOVIDO: Ya no se cierra el modal de imagen haciendo clic fuera
+            // Ahora solo se cierra con la cruz (X) o con gestos táctiles/teclado
 
-            // Gestos táctiles
+            // Gestos táctiles para navegación (pero no para cerrar)
             let startX = 0;
             const imageModal = document.getElementById('imageModal');
             
@@ -1012,6 +1061,7 @@
                 const endX = e.changedTouches[0].screenX;
                 const diff = startX - endX;
                 
+                // Solo navegar, no cerrar modal
                 if (Math.abs(diff) > 50) {
                     if (diff > 0) {
                         imagenSiguiente();
