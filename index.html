@@ -46,8 +46,8 @@
         }
 
         .info-bar {
-            display: flex;
-            justify-content: space-between;
+            display: none;
+            justify-content: space-evenly;
             align-items: center;
             padding: 12px 16px;
             background: rgba(76, 175, 80, 0.1);
@@ -74,7 +74,7 @@
         .sync-indicator.connected { background: #4CAF50; }
         .sync-indicator.syncing { background: #FF9800; animation: pulse 1s infinite; }
         .sync-indicator.error { background: #f44336; }
-
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -523,7 +523,7 @@
     <div class="container">
         <h1>Centro Paso del Rey - Tarjetas de Territorio</h1>
         
-        <div class="info-bar">
+        <div class="info-bar" id="barInfo">
             <div class="sync-status">
                 <div class="sync-indicator" id="syncIndicator"></div>
                 <span id="statusText">Sin configurar</span>
@@ -1002,7 +1002,7 @@
 
         function generarImagenesEjemplo() {
             state.imageUrls = [
-            'https://drive.google.com/thumbnail?id=1DrET5Fdr8L5MQJypbGO0sg29_GAyYt7Q&sz=w2200',
+            'https://drive.google.com/thumbnail?id=1DrET5Fdr8L5MQJypbGO0sg29_GAyYt7Q&sz=w1000',
             'https://drive.google.com/thumbnail?id=1vXU2pG8NFX0F5r9PJpcG9Kp-RotRZZ5H&sz=w1000',
             'https://drive.google.com/thumbnail?id=1czRPzxRL_7kByxorHaJFCP4j8xDfU4d1&sz=w1000',
             'https://drive.google.com/thumbnail?id=1uMK1aarEJfhHKmOcG8uqH9i-_7zsrl1S&sz=w1000',
@@ -1259,12 +1259,17 @@
                 cerrarLogin();
                 mostrarPanelAdmin();
                 mostrarNotificacion('Sesión iniciada', 'success');
+                mostrarInfoBar();
             } else {
                 error.style.display = 'block';
                 setTimeout(() => error.style.display = 'none', 3000);
             }
         }
 
+        function mostrarInfoBar(){
+            const infoBar = document.getElementById('barInfo');
+            infoBar.style.display = 'flex';
+        }
         function mostrarPanelAdmin() {
             const panel = document.getElementById('adminPanel');
             panel.style.display = 'block';
@@ -1273,6 +1278,7 @@
 
         function cerrarAdmin() {
             document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('barInfo').style.display = 'none';
             state.isAdmin = false;
         }
 
@@ -1609,5 +1615,4 @@
     </script>
 </body>
 </html>
-
 
