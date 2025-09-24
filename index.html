@@ -12,6 +12,11 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         body {
@@ -118,40 +123,7 @@
             display: none;
             animation: pulse 2s infinite;
         }
-        /* Botón para volver al menú anterior */
-        .menu-back-btn {
-            display: block;
-            width: 100%;
-            background: linear-gradient(135deg, #6c757d, #5a6268);
-            color: white;
-            border: none;
-            padding: 18px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            margin-top: 20px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
-            position: relative;
-            transform: translateY(0);
-            text-decoration: none;
-            text-align: center;
-        }
 
-        .menu-back-btn:hover {
-            background: linear-gradient(135deg, #5a6268, #495057);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.4);
-            color: white;
-            text-decoration: none;
-        }
-
-        .menu-back-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 10px rgba(108, 117, 125, 0.3);
-        }
-        
         .modal {
             display: none;
             position: fixed;
@@ -202,12 +174,32 @@
             transform: scale(1.1);
         }
 
-        .modal-image {
+        .image-container {
+            position: relative;
             width: 100%;
+            height: calc(85vh - 60px);
+            overflow: hidden;
+            background: #000;
+            touch-action: none;
+        }
+
+        .modal-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: auto;
             height: auto;
-            display: block;
-            max-height: 85vh;
-            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease;
+            transform-origin: center;
+            cursor: move;
+            pointer-events: auto;
+        }
+
+        .modal-image.zoomed {
+            cursor: move;
         }
 
         .image-title {
@@ -231,6 +223,49 @@
             border: 2px solid white;
             display: none;
             animation: pulse 2s infinite;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10002;
+        }
+
+        .zoom-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(76, 175, 80, 0.9);
+            transform: scale(1.1);
+        }
+
+        .zoom-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 10002;
         }
 
         .nav-arrow {
@@ -269,10 +304,18 @@
             cursor: pointer;
             font-size: 14px;
             z-index: 20001;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            opacity: 1;
         }
 
         .admin-toggle:hover { background: rgba(76, 175, 80, 0.9); }
+        
+        /* Clase para ocultar el engranaje */
+        .admin-toggle.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
 
         .login-modal {
             display: none;
@@ -434,6 +477,8 @@
             .admin-panel { max-width: 90%; right: 5%; left: 5%; }
             .admin-grid { grid-template-columns: repeat(5, 1fr); }
             .modal-content { margin: 5% auto; max-width: 98%; }
+            .zoom-controls { bottom: 80px; right: 10px; }
+            .zoom-info { bottom: 80px; left: 10px; }
         }
 
         @media (max-width: 480px) {
@@ -457,9 +502,6 @@
         <div class="buttons-grid" id="buttonsGrid">
             <!-- Botones generados dinámicamente -->
         </div>
-          <a href="https://sites.google.com/view/centro-pasodelrey/predicaci%C3%B3n?authuser=0" class="menu-back-btn" id="menuBackBtn">
-            ← Volver al Menú Predicación
-        </a>
     </div>
 
     <!-- Modal para imágenes -->
@@ -470,7 +512,18 @@
                 <span class="punto-rojo-modal" id="puntoModal"></span>
             </div>
             <span class="close" onclick="cerrarModal()">&times;</span>
-            <img class="modal-image" id="modalImage" src="" alt="Imagen">
+            
+            <div class="image-container" id="imageContainer">
+                <img class="modal-image" id="modalImage" src="" alt="Imagen">
+            </div>
+            
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomIn()">+</button>
+                <button class="zoom-btn" onclick="zoomOut()">-</button>
+                <button class="zoom-btn" onclick="resetZoom()">⌂</button>
+            </div>
+            
+            <div class="zoom-info" id="zoomInfo">100%</div>
         </div>
     </div>
 
@@ -479,7 +532,7 @@
     <div class="nav-arrow nav-next" id="nextBtn" onclick="imagenSiguiente()">&gt;</div>
 
     <!-- Admin -->
-    <button class="admin-toggle" onclick="mostrarLogin()">⚙</button>
+    <button class="admin-toggle" id="adminToggle" onclick="mostrarLogin()">⚙</button>
 
     <!-- Login -->
     <div id="loginModal" class="login-modal">
@@ -518,19 +571,390 @@
             isAdmin: false,
             syncEnabled: false,
             syncInterval: null,
-            supabase: null
+            supabase: null,
+            currentZoom: 1,
+            minZoom: 0.5,
+            maxZoom: 5,
+            panX: 0,
+            panY: 0,
+            isDragging: false,
+            lastTouchDistance: 0,
+            dragStart: { x: 0, y: 0 }
         };
 
-        // Configuración de Supabase - REEMPLAZA CON TUS DATOS REALES
+        // Configuración de Supabase
         let supabaseConfig = {
-            url: 'https://igomjrnampwyexuesmlg.supabase.co', // ejemplo: 'https://abcdefgh.supabase.co'
-            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlnb21qcm5hbXB3eWV4dWVzbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTMwMTcsImV4cCI6MjA3Mzk2OTAxN30.TgwfAL_BEdutGT26SPFQQhLaRXQUMK4rfeL4aSLuj7w' // ejemplo: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+            url: 'Thttps://igomjrnampwyexuesmlg.supabase.co',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlnb21qcm5hbXB3eWV4dWVzbWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgzOTMwMTcsImV4cCI6MjA3Mzk2OTAxN30.TgwfAL_BEdutGT26SPFQQhLaRXQUMK4rfeL4aSLuj7w'
         };
+
+        // === FUNCIONES PARA OCULTAR/MOSTRAR ENGRANAJE ===
+        function ocultarEngranaje() {
+            const adminToggle = document.getElementById('adminToggle');
+            if (adminToggle) {
+                adminToggle.classList.add('hidden');
+            }
+        }
+
+        function mostrarEngranaje() {
+            const adminToggle = document.getElementById('adminToggle');
+            if (adminToggle) {
+                adminToggle.classList.remove('hidden');
+            }
+        }
+
+        // === PREVENCIÓN DE MENÚ CONTEXTUAL ===
+        function desactivarMenuContextual() {
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            }, false);
+
+            document.addEventListener('dragstart', function(e) {
+                if (e.target.tagName === 'IMG') {
+                    e.preventDefault();
+                    return false;
+                }
+            }, false);
+
+            document.addEventListener('selectstart', function(e) {
+                if (e.target.closest('.modal') || e.target.closest('.btn')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }, false);
+
+            document.addEventListener('touchstart', function(e) {
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('wheel', function(e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            }, false);
+
+            document.addEventListener('gesturechange', function(e) {
+                e.preventDefault();
+            }, false);
+
+            document.addEventListener('gestureend', function(e) {
+                e.preventDefault();
+            }, false);
+        }
+
+        // === FUNCIONES DE ZOOM ===
+        function updateImageTransform() {
+            const image = document.getElementById('modalImage');
+            if (image) {
+                const scale = state.currentZoom;
+                const translateX = state.panX;
+                const translateY = state.panY;
+                
+                image.style.transform = `translate(calc(-50% + ${translateX}px), calc(-50% + ${translateY}px)) scale(${scale})`;
+                
+                const zoomInfo = document.getElementById('zoomInfo');
+                if (zoomInfo) {
+                    zoomInfo.textContent = `${Math.round(state.currentZoom * 100)}%`;
+                }
+                
+                if (scale > 1) {
+                    image.classList.add('zoomed');
+                } else {
+                    image.classList.remove('zoomed');
+                }
+            }
+        }
+
+        function zoomIn() {
+            if (state.currentZoom < state.maxZoom) {
+                state.currentZoom = Math.min(state.currentZoom * 1.5, state.maxZoom);
+                updateImageTransform();
+            }
+        }
+
+        function zoomOut() {
+            if (state.currentZoom > state.minZoom) {
+                state.currentZoom = Math.max(state.currentZoom / 1.5, state.minZoom);
+                constrainPan();
+                updateImageTransform();
+            }
+        }
+
+        function resetZoom() {
+            state.currentZoom = 1;
+            state.panX = 0;
+            state.panY = 0;
+            updateImageTransform();
+        }
+
+        function constrainPan() {
+            if (state.currentZoom <= 1) {
+                state.panX = 0;
+                state.panY = 0;
+                return;
+            }
+
+            const container = document.getElementById('imageContainer');
+            const image = document.getElementById('modalImage');
+            
+            if (!container || !image) return;
+            
+            const containerRect = container.getBoundingClientRect();
+            
+            // Obtener dimensiones reales de la imagen
+            const imageNaturalWidth = image.naturalWidth || image.width;
+            const imageNaturalHeight = image.naturalHeight || image.height;
+            
+            // Calcular dimensiones mostradas de la imagen
+            const containerAspect = containerRect.width / containerRect.height;
+            const imageAspect = imageNaturalWidth / imageNaturalHeight;
+            
+            let displayedWidth, displayedHeight;
+            
+            if (imageAspect > containerAspect) {
+                // Imagen más ancha - se ajusta por ancho
+                displayedWidth = containerRect.width;
+                displayedHeight = containerRect.width / imageAspect;
+            } else {
+                // Imagen más alta - se ajusta por altura
+                displayedHeight = containerRect.height;
+                displayedWidth = containerRect.height * imageAspect;
+            }
+            
+            // Calcular dimensiones con zoom
+            const scaledWidth = displayedWidth * state.currentZoom;
+            const scaledHeight = displayedHeight * state.currentZoom;
+            
+            // Calcular límites máximos de pan
+            const maxPanX = Math.max(0, (scaledWidth - containerRect.width) / 2);
+            const maxPanY = Math.max(0, (scaledHeight - containerRect.height) / 2);
+            
+            // Aplicar límites
+            state.panX = Math.max(-maxPanX, Math.min(maxPanX, state.panX));
+            state.panY = Math.max(-maxPanY, Math.min(maxPanY, state.panY));
+        }
+
+        // === GESTOS TÁCTILES MEJORADOS ===
+        function configurarGestosZoom() {
+            const container = document.getElementById('imageContainer');
+            const image = document.getElementById('modalImage');
+            
+            if (!container || !image) return;
+
+            let gestureState = {
+                touches: [],
+                initialDistance: 0,
+                initialZoom: 1,
+                initialPanX: 0,
+                initialPanY: 0,
+                center: { x: 0, y: 0 },
+                initialCenter: { x: 0, y: 0 },
+                isZooming: false,
+                isDragging: false,
+                startTime: 0
+            };
+
+            function getDistance(touch1, touch2) {
+                const dx = touch1.clientX - touch2.clientX;
+                const dy = touch1.clientY - touch2.clientY;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            function getCenter(touch1, touch2) {
+                return {
+                    x: (touch1.clientX + touch2.clientX) / 2,
+                    y: (touch1.clientY + touch2.clientY) / 2
+                };
+            }
+
+            function getTouchCenter(touches) {
+                if (touches.length === 1) {
+                    return { x: touches[0].clientX, y: touches[0].clientY };
+                } else if (touches.length === 2) {
+                    return getCenter(touches[0], touches[1]);
+                }
+                return { x: 0, y: 0 };
+            }
+
+            // Touch Start
+            container.addEventListener('touchstart', function(e) {
+                gestureState.touches = Array.from(e.touches);
+                gestureState.startTime = Date.now();
+                
+                if (gestureState.touches.length === 1) {
+                    // Preparar para arrastrar (solo si hay zoom)
+                    if (state.currentZoom > 1) {
+                        gestureState.isDragging = true;
+                        gestureState.initialPanX = state.panX;
+                        gestureState.initialPanY = state.panY;
+                        gestureState.initialCenter = getTouchCenter(gestureState.touches);
+                    }
+                } else if (gestureState.touches.length === 2) {
+                    // Preparar para pellizcar
+                    gestureState.isZooming = true;
+                    gestureState.isDragging = false;
+                    gestureState.initialDistance = getDistance(gestureState.touches[0], gestureState.touches[1]);
+                    gestureState.initialZoom = state.currentZoom;
+                    gestureState.initialPanX = state.panX;
+                    gestureState.initialPanY = state.panY;
+                    gestureState.initialCenter = getCenter(gestureState.touches[0], gestureState.touches[1]);
+                    
+                    // Convertir coordenadas del centro a relativas al contenedor
+                    const containerRect = container.getBoundingClientRect();
+                    gestureState.center = {
+                        x: gestureState.initialCenter.x - containerRect.left - containerRect.width / 2,
+                        y: gestureState.initialCenter.y - containerRect.top - containerRect.height / 2
+                    };
+                }
+            }, { passive: true });
+
+            // Touch Move
+            container.addEventListener('touchmove', function(e) {
+                e.preventDefault(); // Prevenir scroll del navegador
+                
+                gestureState.touches = Array.from(e.touches);
+                
+                if (gestureState.touches.length === 1 && gestureState.isDragging && state.currentZoom > 1) {
+                    // Arrastrar con un dedo
+                    const currentCenter = getTouchCenter(gestureState.touches);
+                    const deltaX = currentCenter.x - gestureState.initialCenter.x;
+                    const deltaY = currentCenter.y - gestureState.initialCenter.y;
+                    
+                    state.panX = gestureState.initialPanX + deltaX;
+                    state.panY = gestureState.initialPanY + deltaY;
+                    constrainPan();
+                    updateImageTransform();
+                    
+                } else if (gestureState.touches.length === 2 && gestureState.isZooming) {
+                    // Pellizcar con dos dedos
+                    const currentDistance = getDistance(gestureState.touches[0], gestureState.touches[1]);
+                    const currentCenter = getCenter(gestureState.touches[0], gestureState.touches[1]);
+                    
+                    // Calcular nuevo zoom
+                    if (gestureState.initialDistance > 0) {
+                        const scale = currentDistance / gestureState.initialDistance;
+                        const newZoom = gestureState.initialZoom * scale;
+                        state.currentZoom = Math.max(state.minZoom, Math.min(state.maxZoom, newZoom));
+                        
+                        // Ajustar pan para mantener el centro del pellizco
+                        const containerRect = container.getBoundingClientRect();
+                        const newCenter = {
+                            x: currentCenter.x - containerRect.left - containerRect.width / 2,
+                            y: currentCenter.y - containerRect.top - containerRect.height / 2
+                        };
+                        
+                        const centerDeltaX = newCenter.x - gestureState.center.x;
+                        const centerDeltaY = newCenter.y - gestureState.center.y;
+                        
+                        state.panX = gestureState.initialPanX + centerDeltaX;
+                        state.panY = gestureState.initialPanY + centerDeltaY;
+                        
+                        constrainPan();
+                        updateImageTransform();
+                    }
+                }
+            }, { passive: false });
+
+            // Touch End
+            container.addEventListener('touchend', function(e) {
+                const remainingTouches = Array.from(e.touches);
+                const endTime = Date.now();
+                const touchDuration = endTime - gestureState.startTime;
+                
+                // Si era un toque rápido en una imagen sin zoom, podría ser navegación
+                if (remainingTouches.length === 0) {
+                    if (gestureState.touches.length === 1 && touchDuration < 200 && state.currentZoom === 1) {
+                        // Este caso se maneja en el event listener principal para navegación
+                    }
+                    
+                    // Reset de estados
+                    gestureState.isZooming = false;
+                    gestureState.isDragging = false;
+                }
+                
+                // Actualizar touches
+                gestureState.touches = remainingTouches;
+                
+                // Si quedó un toque después de pellizcar, preparar para arrastrar
+                if (remainingTouches.length === 1 && gestureState.isZooming) {
+                    gestureState.isZooming = false;
+                    if (state.currentZoom > 1) {
+                        gestureState.isDragging = true;
+                        gestureState.initialPanX = state.panX;
+                        gestureState.initialPanY = state.panY;
+                        gestureState.initialCenter = getTouchCenter(remainingTouches);
+                    }
+                }
+            }, { passive: true });
+
+            // Touch Cancel (por si se interrumpe el gesto)
+            container.addEventListener('touchcancel', function(e) {
+                gestureState.isZooming = false;
+                gestureState.isDragging = false;
+                gestureState.touches = [];
+            }, { passive: true });
+        }
+
+        // === ARRASTRAR CON MOUSE ===
+        function configurarArrastreRaton() {
+            const image = document.getElementById('modalImage');
+            if (!image) return;
+
+            let mouseDown = false;
+            let startX, startY;
+
+            image.addEventListener('mousedown', function(e) {
+                if (state.currentZoom > 1) {
+                    mouseDown = true;
+                    startX = e.clientX - state.panX;
+                    startY = e.clientY - state.panY;
+                    image.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (mouseDown && state.currentZoom > 1) {
+                    state.panX = e.clientX - startX;
+                    state.panY = e.clientY - startY;
+                    constrainPan();
+                    updateImageTransform();
+                    e.preventDefault();
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (mouseDown) {
+                    mouseDown = false;
+                    const image = document.getElementById('modalImage');
+                    if (image && state.currentZoom > 1) {
+                        image.style.cursor = 'move';
+                    }
+                }
+            });
+
+            image.addEventListener('wheel', function(e) {
+                e.preventDefault();
+                if (e.deltaY < 0) {
+                    zoomIn();
+                } else {
+                    zoomOut();
+                }
+            }, { passive: false });
+        }
 
         // === INICIALIZACIÓN ===
         async function init() {
             console.log('Iniciando Tarjetas Territorio...');
             
+            desactivarMenuContextual();
             generarImagenesEjemplo();
             await inicializarSupabase();
             await cargarEstado();
@@ -542,9 +966,8 @@
         }
 
         function generarImagenesEjemplo() {
-            // REEMPLAZA ESTAS URLs CON TUS IMÁGENES REALES
             state.imageUrls = [
-            'https://drive.google.com/thumbnail?id=1DrET5Fdr8L5MQJypbGO0sg29_GAyYt7Q&sz=w1000',
+            'https://drive.google.com/thumbnail?id=1DrET5Fdr8L5MQJypbGO0sg29_GAyYt7Q&sz=w2200',
             'https://drive.google.com/thumbnail?id=1vXU2pG8NFX0F5r9PJpcG9Kp-RotRZZ5H&sz=w1000',
             'https://drive.google.com/thumbnail?id=1czRPzxRL_7kByxorHaJFCP4j8xDfU4d1&sz=w1000',
             'https://drive.google.com/thumbnail?id=1uMK1aarEJfhHKmOcG8uqH9i-_7zsrl1S&sz=w1000',
@@ -670,7 +1093,6 @@
                                 crearGridAdmin();
                             }
                             
-                            // Actualizar modal si está abierto
                             if (document.getElementById('imageModal').style.display === 'block') {
                                 actualizarPuntoModal();
                             }
@@ -848,7 +1270,6 @@
                 punto.style.display = state.puntosRojos[index] ? 'block' : 'none';
             }
             
-            // Actualizar modal si está abierto y es el territorio actual
             if (state.imagenActual === numero && document.getElementById('imageModal').style.display === 'block') {
                 actualizarPuntoModal();
             }
@@ -913,6 +1334,7 @@
             if (numero < 1 || numero > 49) return;
             
             state.imagenActual = numero;
+            resetZoom();
             mostrarImagenModal();
         }
 
@@ -934,8 +1356,17 @@
             prevBtn.style.display = 'flex';
             nextBtn.style.display = 'flex';
             
+            // Ocultar el engranaje cuando se abre el modal
+            ocultarEngranaje();
+            
             actualizarNavegacion();
             document.body.style.overflow = 'hidden';
+            
+            imagen.onload = () => {
+                configurarGestosZoom();
+                configurarArrastreRaton();
+                updateImageTransform();
+            };
         }
 
         function actualizarPuntoModal() {
@@ -963,6 +1394,7 @@
         function imagenAnterior() {
             if (state.imagenActual > 1) {
                 state.imagenActual--;
+                resetZoom();
                 mostrarImagenModal();
             }
         }
@@ -970,6 +1402,7 @@
         function imagenSiguiente() {
             if (state.imagenActual < 49) {
                 state.imagenActual++;
+                resetZoom();
                 mostrarImagenModal();
             }
         }
@@ -983,7 +1416,11 @@
             prevBtn.style.display = 'none';
             nextBtn.style.display = 'none';
             
+            // Mostrar el engranaje cuando se cierra el modal
+            mostrarEngranaje();
+            
             document.body.style.overflow = '';
+            resetZoom();
         }
 
         // === UTILIDADES ===
@@ -1062,6 +1499,19 @@
                         case 'Escape':
                             cerrarModal();
                             break;
+                        case '+':
+                        case '=':
+                            event.preventDefault();
+                            zoomIn();
+                            break;
+                        case '-':
+                            event.preventDefault();
+                            zoomOut();
+                            break;
+                        case '0':
+                            event.preventDefault();
+                            resetZoom();
+                            break;
                     }
                 }
                 
@@ -1077,32 +1527,36 @@
                 }
             });
 
-            // Solo cerrar login modal haciendo clic fuera
             document.getElementById('loginModal').addEventListener('click', function(e) {
                 if (e.target === this) cerrarLogin();
             });
 
-            // REMOVIDO: Ya no se cierra el modal de imagen haciendo clic fuera
-            // Ahora solo se cierra con la cruz (X) o con gestos táctiles/teclado
-
-            // Gestos táctiles para navegación (pero no para cerrar)
             let startX = 0;
+            let startY = 0;
             const imageModal = document.getElementById('imageModal');
             
             imageModal.addEventListener('touchstart', function(e) {
-                startX = e.changedTouches[0].screenX;
+                if (e.touches.length === 1) {
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                }
             }, { passive: true });
 
             imageModal.addEventListener('touchend', function(e) {
-                const endX = e.changedTouches[0].screenX;
-                const diff = startX - endX;
-                
-                // Solo navegar, no cerrar modal
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0) {
-                        imagenSiguiente();
-                    } else {
-                        imagenAnterior();
+                // Solo manejar navegación si no hay zoom y fue un swipe claro
+                if (e.changedTouches.length === 1 && state.currentZoom === 1) {
+                    const endX = e.changedTouches[0].clientX;
+                    const endY = e.changedTouches[0].clientY;
+                    const diffX = startX - endX;
+                    const diffY = startY - endY;
+                    
+                    // Solo navegar si el movimiento horizontal es claro y no es un tap
+                    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 80) {
+                        if (diffX > 0) {
+                            imagenSiguiente();
+                        } else {
+                            imagenAnterior();
+                        }
                     }
                 }
             }, { passive: true });
@@ -1116,10 +1570,7 @@
             });
         });
 
-        console.log('Tarjetas Territorio - Sincronización con Base de Datos');
-        console.log('Reemplaza las credenciales de Supabase en el código');
+        console.log('Tarjetas Territorio - Engranaje Oculto en Modal');
     </script>
 </body>
 </html>
-
-
